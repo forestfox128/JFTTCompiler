@@ -20,17 +20,13 @@ using namespace std;
 typedef struct {
 	string name;
     string type; //NUM, IDE, ARR
-    int initialized;
-    int counter;
-	long long int local;
-  	long long int tableSize;
 } Identifier;
 
 ///////////////////////////
 // GLOBAL VARIABLES
 ///////////////////////////
 
-extern map<string, Identifier> identifierStack;
+extern map <string, Identifier> identifierStack;
 extern map<string, string> registerMap;
 extern stack <Identifier> ideStack;
 extern vector<string> codeStack;
@@ -44,7 +40,7 @@ void pushCommand(string str);
 
 void initializeStackReg();
 void pushCommandOneArg(string str, long long int num);
-void createIdentifier(Identifier *s, string name, long long int isLocal,long long int isArray, string type);
+void createIdentifier(Identifier *s, string name, string type);
 void insertIdentifier(string key, Identifier i);
 
 void addDeclaredVariable(string variable, Identifier i);
@@ -64,3 +60,7 @@ void expressWrite();
 void ideAsignExpress(string ide);
 void getNumber(string num);
 void getIdentifier(string ide);
+void setRegister(string reg, int value);
+void storeInMemory(string reg, string variable);
+void loadFromMemory(string variable, string reg);
+int findInVector(string var);

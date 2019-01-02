@@ -5,14 +5,12 @@ map<string, string> registerMap;
 stack<Identifier> ideStack;
 vector<string> codeStack;
 stack<string> regStack;
+vector <Identifier> memoryTable;
 
 int programCounter = 0;
 string currentRegister = "";
-long long int memCounter;
-/*long long int registerValue;*/
-long long int depth;
 int assignFlag = 1;
-int writeFlag;
+int numberofVariables = 0;
 
 
 void initializeStackReg()
@@ -23,27 +21,10 @@ void initializeStackReg()
     regStack.push("B");
 }
 
-void createIdentifier(Identifier *s, string name, long long int isLocal, long long int isArray, string type)
+void createIdentifier(Identifier *s, string name, string type)
 {
     s->name = name;
     s->type = type;
-    s->initialized = 0;
-    if (isLocal)
-    {
-        s->local = 1;
-    }
-    else
-    {
-        s->local = 0;
-    }
-    if (isArray)
-    {
-        s->tableSize = isArray;
-    }
-    else
-    {
-        s->tableSize = 0;
-    }
 }
 
 Identifier getValueIndentifier(string name)
@@ -68,22 +49,31 @@ void addO(Identifier a, Identifier b)
 {
     if ((a.type == "IDE" && b.type == "NUM"))
     {
-
+        loadFromMemory(a.name,"B");
         for (int i = 0; i < std::stoi(b.name); i++)
         {
-            pushCommand("INC " + registerMap.at(a.name));
+            pushCommand("INC B");
         }
     }
     if (a.type == "NUM" && b.type == "IDE")
     {
+        loadFromMemory(b.name,"B");
         for (int i = 0; i < std::stoi(a.name); i++)
         {
-            pushCommand("INC " + registerMap.at(b.name));
+            pushCommand("INC B");
         }
     }
     if (a.type == "IDE" && b.type == "IDE")
     {
-        pushCommand("ADD " + registerMap.at(a.name) + " " + registerMap.at(b.name));
+        loadFromMemory(a.name,"B");
+        loadFromMemory(b.name,"C");
+        pushCommand("ADD B C");
+    }
+    if(a.type == "NUM" && b.type == "NUM"){
+
+        setRegister("B",std::stoi(a.name));
+        setRegister("C",std::stoi(b.name));
+        pushCommand("ADD B C");
     }
 }
 
@@ -110,9 +100,13 @@ void subO(Identifier a, Identifier b)
 void multpO(Identifier a, Identifier b, Identifier c)
 {
 
-    registerMap["temp"] = getRegister();
+    registerMap["temp1"] = getRegister();
+    
     if ((b.type == "IDE" && a.type == "IDE"))
     {
+        // pushCommand("SUB " + registerMap.at("temp1") + " " + registerMap.at("temp1"));
+        
+
     }
 
     if ((b.type == "IDE" && a.type == "NUM" && c.type == "IDE"))
@@ -130,23 +124,31 @@ void multpO(Identifier a, Identifier b, Identifier c)
 void divideO(Identifier a, Identifier b, Identifier c)
 {
 
-    registerMap["temp"] = getRegister();
     if ((b.type == "IDE" && a.type == "IDE"))
     {
-
-        pushCommand("COPY " + registerMap.at("temp") + " " + registerMap.at(a.name));
+        
+        pushCommand("SUB " + registerMap.at("temp") + " " + registerMap.at("temp"));
+        pushCommand("COPY " + registerMap.at("temp2") + " " + registerMap.at(b.name));
+        pushCommand("SUB " + registerMap.at("temp2") + " " + registerMap.at(b.name));
         string jzeroPosition = to_string(programCounter);
-        string jumpPosition = to_string(programCounter + 4);
-        pushCommand("JZERO " + registerMap.at(b.name) + " " + jumpPosition);
-        pushCommand("ADD " + registerMap.at(a.name) + " " + registerMap.at("temp"));
-        pushCommand("DEC " + registerMap.at(b.name));
+        string jumpPosition1 = to_string(programCounter + 6);
+        string jumpPosition2 = to_string(programCounter + 9);
+        pushCommand("JZERO " + registerMap.at("temp2") + " " + jumpPosition1);
+
+        pushCommand("JZERO " + registerMap.at(b.name) + " " + jumpPosition2);
+        string jumpPosition3 = to_string(programCounter);
+        pushCommand("JZERO " + registerMap.at(a.name) + " " + jumpPosition2);
+        pushCommand("SUB " + registerMap.at(a.name) + " " + registerMap.at(b.name));
+        pushCommand("INC " + registerMap.at("temp"));
         pushCommand("JUMP " + jzeroPosition);
-        pushCommand("SUB " + registerMap.at(a.name) + " " + registerMap.at("temp"));
-    }
+        pushCommand("COPY " + registerMap.at("temp2") + " " + registerMap.at(b.name));
+        pushCommand("SUB " + registerMap.at("temp2") + " " + registerMap.at(a.name));
+        pushCommand("JZERO " + registerMap.at("temp2") + " " + jumpPosition3);
+
+      }
 
     if ((b.type == "IDE" && a.type == "NUM" && c.type == "IDE"))
     {
-        cout << "NUMENENE" << currentRegister << endl;
         pushCommand("COPY " + registerMap.at("temp") + " " + registerMap.at(b.name));
         pushCommand("COPY " + registerMap.at(c.name) + " " + registerMap.at(b.name));
 
@@ -157,18 +159,6 @@ void divideO(Identifier a, Identifier b, Identifier c)
     }
 }
 
-void addDeclaredVariable(string variable, Identifier i)
-{
-    if (identifierStack.count(variable) == 0)
-    {
-        identifierStack.insert(make_pair(variable, i));
-        identifierStack.at(variable).counter = 0;
-    }
-    else
-    {
-        identifierStack.at(variable).counter = identifierStack.at(variable).counter + 1;
-    }
-}
 
 void pushCommand(string command)
 {
@@ -194,8 +184,12 @@ void declarationIde(string ide, int yylineno)
     else
     {
         Identifier s;
-        createIdentifier(&s, ide, 0, 0, "IDE");
-        addDeclaredVariable(ide, s);
+        createIdentifier(&s, ide, "IDE");
+        if (identifierStack.count(ide) == 0)
+        {
+            identifierStack.insert(make_pair(ide, s));
+            numberofVariables++;
+        }
     }
 }
 
@@ -203,30 +197,31 @@ void expressRead()
 {
     Identifier a = ideStack.top();
     ideStack.pop();
-    pushCommand("GET " + registerMap.at(a.name));
+    pushCommand("GET B");
+    memoryTable.push_back(a);
+    storeInMemory("B", a.name);
+
 }
+
 void ideAsignExpress(string ide)
 {
     if (assignFlag == 1)
     {
-        Identifier a = ideStack.top();
-        ideStack.pop();
-        Identifier b = ideStack.top();
-        ideStack.pop();
-        pushCommand("COPY " + registerMap.at(b.name) + " " + registerMap.at(a.name));
+        Identifier a = identifierStack.at(ide);
+        storeInMemory("B",a.name);
     }
     if (assignFlag == 0)
     {
 
         currentRegister = registerMap.at(ide);
-        cout << "Identif " << currentRegister << endl;
     }
 }
 void expressWrite() {
 
     Identifier a = ideStack.top();
     ideStack.pop();
-    pushCommand("PUT " + currentRegister);
+    loadFromMemory(a.name,"B");
+    pushCommand("PUT B");
 }
 
 void add(string ide1, string ide2, int yylineo){
@@ -235,7 +230,6 @@ void add(string ide1, string ide2, int yylineo){
     ideStack.pop();
     Identifier b = ideStack.top();
     ideStack.pop();
-    cout << " " << a.name << " " << b.name << endl;
     addO(a, b);
 
     
@@ -247,7 +241,6 @@ void sub(string ide1, string ide2, int yylineo){
     ideStack.pop();
     Identifier b = ideStack.top();
     ideStack.pop();
-    cout << " " << a.name << " " << b.name << endl;
     subO(a, b);
 
 }
@@ -264,6 +257,7 @@ void multp(string ide1, string ide2, int yylineo){
 
 }
 void divide(string ide1, string ide2, int yylineo){
+    cout<<"DIVISION"<<endl;
     assignFlag = 0;
         Identifier a = ideStack.top();
         ideStack.pop();
@@ -276,15 +270,59 @@ void divide(string ide1, string ide2, int yylineo){
 
 void getNumber(string num){
     Identifier s;
-    createIdentifier(&s, num, 0, 0, "NUM");
+    createIdentifier(&s, num, "NUM");
     ideStack.push(s);
 }
 
 void getIdentifier(string ide){
 
-    Identifier s = getValueIndentifier(ide);
-    if(registerMap.find(s.name) == registerMap.end())
-        registerMap[s.name] = getRegister(); 
+    Identifier s = identifierStack.at(ide);
+    // if(registerMap.find(s.name) == registerMap.end())
+    //     registerMap[s.name] = getRegister(); 
     ideStack.push(s);
+    // cout<<"getIde "<<s.name<<endl;
 }
+
+void setRegister(string reg, int value){
+    pushCommand("SUB "+reg+" "+reg);
+     
+    for(int i = 0; i < value; i++){
+        pushCommand("INC "+reg);
+    }
+}
+
+void storeInMemory(string reg, string variable){
+
+    int placeInMemory = findInVector(variable);
+
+    if(placeInMemory == -1)
+        setRegister("A", memoryTable.size()-1);
+    else
+        setRegister("A",placeInMemory);
+
+    pushCommand("STORE "+reg);
+}
+
+void loadFromMemory(string variable, string reg){
+
+    int placeInMemory = findInVector(variable);
+    if(placeInMemory == -1){
+        cout<<" ERROR"<<endl;
+        return;
+    }
+    setRegister("A", placeInMemory);
+    pushCommand("LOAD "+reg);
+}
+
+int findInVector(string var){
+
+    for(int i = 0; i < memoryTable.size(); i++){
+        //cout<<memoryTable[i].name<<endl;
+        if(memoryTable[i].name == var){
+            return i;
+        }
+    }
+    return -1;
+}
+
 
