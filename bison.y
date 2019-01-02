@@ -74,7 +74,7 @@ expression:
         divide($1, $3, yylineno);
     }
     | value MOD value {
-        // assignFlag = 0;
+        modulo($1, $3, yylineno);
     }
     
     | value

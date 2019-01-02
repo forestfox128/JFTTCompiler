@@ -1,9 +1,8 @@
 DECLARE
 	a; b;
 IN
-READ b;
-b := b + 5;
 READ a;
+READ b;
+a := a % b;
 WRITE a;
-WRITE b;
 END
