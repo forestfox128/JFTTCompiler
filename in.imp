@@ -1,8 +1,10 @@
 DECLARE
-	a; b;
+	n; b;
 IN
-READ a;
-READ b;
-a := a % b;
-WRITE a;
+n := 11;
+b := 6;
+    FOR i FROM n DOWNTO b DO
+        WRITE i;
+        n := n + 2;
+    ENDFOR
 END

@@ -3,23 +3,19 @@
 //map<string, Identifier> identifierStack;
 map<string, string> registerMap;
 stack<Identifier> ideStack;
+stack <int> jumpStack;
 vector<string> codeStack;
 stack<string> regStack;
 vector <string> memoryTable;
+vector <string> unChangeableIden;
 
 int programCounter = 0;
 string currentRegister = "";
 int numberofVariables = 0;
 
-
-void initializeStackReg()
-{
-    regStack.push("E");
-    regStack.push("D");
-    regStack.push("C");
-    regStack.push("B");
-}
-
+////////////////////////////////////
+// helper functions
+////////////////////////////////////
 void createIdentifier(Identifier *s, string name, string type)
 {
     s->name = name;
@@ -258,24 +254,81 @@ void printCodeStd()
         cout << codeStack.at(i) << endl;
 }
 
-////////////////////
-void declarationIde(string ide, int yylineno)
-{
-    //if (identifierStack.find(ide) != identifierStack.end())
-    if ( std::find(memoryTable.begin(), memoryTable.end(), ide) != memoryTable.end() )
-    {
-        cout << "ERROR: line" << yylineno << " Kolejna deklaracja zmiennej: " << ide << endl;
-        exit(1);
-    }
-    else
-    {
-        Identifier s;
-        createIdentifier(&s, ide, "IDE");
-        memoryTable.push_back(ide);
-        
-    }
+/////////////////////////////////////////////
+// loop expression functions
+////////////////////////////////////////////
+
+void customForDeclaration(){
+    
 }
 
+void customFor(){
+    
+    
+    
+}
+
+
+void downtoForDeclaration(string ide, int yylineno){
+
+    Identifier endPoint = ideStack.top();
+    ideStack.pop();  
+    Identifier startPoint = ideStack.top();
+    ideStack.pop();
+    declarationIde(ide, yylineno);
+    
+    unChangeableIden.push_back(ide);
+    pushCommand("SUB G G");
+    if(startPoint.type == "NUM" && endPoint.type == "NUM"){
+        setRegister("G", (stoi(startPoint.name) - stoi(endPoint.name)));
+    }
+    if(startPoint.type == "NUM" && endPoint.type == "IDE"){
+        loadFromMemory(endPoint.name,"G");
+        setRegister("B",stoi(startPoint.name));
+        pushCommand("SUB B G");
+        pushCommand("COPY G B");
+    }
+    if(startPoint.type == "IDE" && endPoint.type == "NUM"){
+        loadFromMemory(startPoint.name,"G");
+        setRegister("B",stoi(endPoint.name));
+        pushCommand("SUB G B");
+    }
+    if(startPoint.type == "IDE" && endPoint.type == "IDE"){
+        loadFromMemory(endPoint.name,"B");
+        loadFromMemory(startPoint.name,"G");
+        pushCommand("SUB G B");
+    }
+    storeInMemory("G", ide);
+    jumpStack.push(programCounter);
+}
+
+void downtoFor(string iterator){
+
+    pushCommand("DEC G");
+    storeInMemory("G", iterator);
+    string jumpPosition = to_string(programCounter + 2);
+    pushCommand("JZERO G "+ jumpPosition);
+    string beginPosition = to_string(jumpStack.top());
+    jumpStack.pop();
+    pushCommand("JUMP " + beginPosition);
+}
+
+void customIf(){
+
+}
+void elseIf(){
+
+}
+void customWhile(){
+
+}
+void customDoWhile(){
+
+}
+
+///////////////////////////////////
+// simple expression functions
+//////////////////////////////////
 void expressRead()
 {
     Identifier a = ideStack.top();
@@ -286,8 +339,14 @@ void expressRead()
 
 }
 
-void ideAsignExpress(string ide)
+void ideAsignExpress(string ide, int yylineno)
 {
+    for(int i = 0; i < unChangeableIden.size(); i++){
+        if(unChangeableIden[i] == ide){
+            cerr<<"ERROR: <line: "<<yylineno<<"> Próba zmiany niezmiennej zmiennej."<<endl;
+            exit(1);
+        }
+    }
     storeInMemory("B", ide);
 
 }
@@ -358,6 +417,21 @@ void getIdentifier(string ide){
     ideStack.push(s);
 }
 
+void declarationIde(string ide, int yylineno){
+    if ( std::find(memoryTable.begin(), memoryTable.end(), ide) != memoryTable.end() ){
+        cout << "ERROR: line" << yylineno << " Kolejna deklaracja zmiennej: " << ide << endl;
+        exit(1);
+    }
+    else{
+        Identifier s;
+        createIdentifier(&s, ide, "IDE");
+        memoryTable.push_back(ide);   
+    }
+}
+
+//////////////////////////////////
+// memory managment functions
+/////////////////////////////////
 void setRegister(string reg, int value){
     pushCommand("SUB "+reg+" "+reg);
      
@@ -382,7 +456,7 @@ void loadFromMemory(string variable, string reg){
 
     int placeInMemory = findInVector(variable);
     if(placeInMemory == -1){
-        cout<<" ERROR"<<endl;
+        cout<<" ERROR"<<programCounter<<" "<<variable<<endl;
         return;
     }
     setRegister("A", placeInMemory);
@@ -392,7 +466,6 @@ void loadFromMemory(string variable, string reg){
 int findInVector(string var){
 
     for(int i = 0; i < memoryTable.size(); i++){
-        //cout<<memoryTable[i].name<<endl;
         if(memoryTable[i] == var){
             return i;
         }

@@ -31,22 +31,57 @@ extern map<string, string> registerMap;
 extern stack <Identifier> ideStack;
 extern vector<string> codeStack;
 extern stack <string> regStack;
+extern stack <int> jumpStack;
+extern vector <string> unChangeableIden;
 
+/////////////////////////////////
+// bison
+////////////////////////////////
 int yylex();
 extern int yylineno;
 int yyerror(const string str);
 
 void pushCommand(string str);
-
-void initializeStackReg();
-void pushCommandOneArg(string str, long long int num);
 void createIdentifier(Identifier *s, string name, string type);
-void insertIdentifier(string key, Identifier i);
+void printCodeStd();
 
-void addDeclaredVariable(string variable, Identifier i);
-Identifier getValueIndentifier(string name);
-void removeIdentifier(string key);
-string setRegister(string number);
+///////////////////////////////////////
+// number and identifier get functions
+//////////////////////////////////////
+void getNumber(string num);
+void getIdentifier(string ide);
+
+///////////////////////////////////
+// simple expression functions
+//////////////////////////////////
+void declarationIde(string ide, int yylineno);
+void expressRead();
+void expressWrite();
+void ideAsignExpress(string ide, int yylineno);
+
+///////////////////////////////////
+// loop expressions functions
+/////////////////////////////////
+void customFor();
+void customForDeclaration();
+void downtoFor(string iterator);
+void downtoForDeclaration(string ide, int yylineno);
+void customIf();
+void elseIf();
+void customWhile();
+void customDoWhile();
+
+//////////////////////////////////
+// memory managment functions
+/////////////////////////////////
+void setRegister(string reg, int value);
+void storeInMemory(string reg, string variable);
+void loadFromMemory(string variable, string reg);
+int findInVector(string var);
+
+/////////////////////////////
+// operation functions
+////////////////////////////
 void add(string ide1, string ide2, int yylineo);
 void sub(string ide1, string ide2, int yylineo);
 void multp(string ide1, string ide2, int yylineo);
@@ -54,15 +89,3 @@ void dividePush();
 void divide(string ide1, string ide2, int yylineo);
 void modulo(string ide1, string ide2, int yylineo);
 void moduloPush();
-void printCodeStd();
-
-void declarationIde(string ide, int yylineno);
-void expressRead();
-void expressWrite();
-void ideAsignExpress(string ide);
-void getNumber(string num);
-void getIdentifier(string ide);
-void setRegister(string reg, int value);
-void storeInMemory(string reg, string variable);
-void loadFromMemory(string variable, string reg);
-int findInVector(string var);

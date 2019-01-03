@@ -11,7 +11,7 @@
 }
 %token <str> NUM
 %token <str> DECLARE IN END IF THEN ELSE ENDIF
-%token <str> WHILE DO ENDWHILE FOR FROM ENDFOR
+%token <str> WHILE DO ENDWHILE FOR FROM ENDFOR ENDDO
 %token <str> WRITE READ IDE SEM TO DOWNTO
 %token <str> LB RB ASG EQ LT GT LE GE NE ADD SUB MUL DIV MOD
 
@@ -45,13 +45,31 @@ command:
     }
 
     | identifier ASG expression SEM {
-        ideAsignExpress($1);   
+        ideAsignExpress($1, yylineno);   
     }
 
     | WRITE expression SEM {
         expressWrite();
     }
 
+    | FOR IDE FROM value TO value DO { customForDeclaration(); } commands ENDFOR {
+        customFor();
+    }
+    | FOR IDE FROM value DOWNTO value { downtoForDeclaration($2, yylineno); } DO commands ENDFOR {
+        downtoFor($2);
+    }
+    | IF condition THEN commands ENDIF {
+        customIf();
+    }
+    | IF condition THEN commands ELSE commands ENDIF {
+        elseIf();
+    }
+    | WHILE condition DO commands ENDWHILE {
+        customWhile();
+    }
+    | DO commands WHILE condition ENDDO {
+        customDoWhile();
+    }
 
     
     ;
@@ -122,7 +140,6 @@ void parser(long long int argv, char* argc[]) {
 }
 
 int main(int argv, char* argc[]){
-    initializeStackReg();
 	parser(argv, argc);
 	return 0;
 }

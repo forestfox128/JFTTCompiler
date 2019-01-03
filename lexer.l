@@ -31,6 +31,7 @@
 "ENDIF"         { return ENDIF;    }
 "ENDWHILE"      { return ENDWHILE; }
 "ENDFOR"        { return ENDFOR;   }
+"ENDDO"         { return ENDDO;   }
 "DO"            { return DO;       }
 "WRITE"         { return WRITE;    }
 "READ"          { return READ;     }
