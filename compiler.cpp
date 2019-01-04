@@ -293,7 +293,7 @@ void customForDeclaration(string ide, int yylineno){
 }
 
 void customFor(string iterator, string endpoint){
-    
+
     loadFromMemory(iterator,"G");
     pushCommand("INC G");
     pushCommand("COPY D G");
@@ -301,8 +301,10 @@ void customFor(string iterator, string endpoint){
         setRegister("C",stoi(endpoint));
     }
     else{
+        //cout<<endpoint<<endl;
         loadFromMemory(endpoint,"C");
     }
+    pushCommand("INC C");
     pushCommand("SUB C D");
     string jumpPosition = to_string(programCounter + 2);
     pushCommand("JZERO C " + jumpPosition);
@@ -345,8 +347,8 @@ void downtoForDeclaration(string ide, int yylineno){
 void downtoFor(string iterator, string endpoint){
 
     loadFromMemory(iterator,"G");
-    pushCommand("DEC G");
     pushCommand("COPY D G");
+    pushCommand("DEC G");
     if(is_number(endpoint)){
         setRegister("C",stoi(endpoint));
     }
