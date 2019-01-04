@@ -265,11 +265,50 @@ bool is_number(const std::string& s)
 }
 
 void customForDeclaration(string ide, int yylineno){
+
+    Identifier endPoint = ideStack.top();
+    ideStack.pop();  
+    Identifier startPoint = ideStack.top();
+    ideStack.pop();
+    declarationIde(ide, yylineno);
+    
+    unChangeableIden.push_back(ide);
+    pushCommand("SUB G G");
+    if(startPoint.type == "NUM"){
+        setRegister("G",stoi(startPoint.name));    
+    }
+    if(startPoint.type == "NUM"){
+        setRegister("G",stoi(startPoint.name));
+    }
+    if(startPoint.type == "IDE"){
+        loadFromMemory(startPoint.name,"G");
+    }
+    if(startPoint.type == "IDE"){
+        loadFromMemory(startPoint.name,"G");
+    }
+    
+    jumpStack.push(programCounter);
+    storeInMemory("G", ide); 
     
 }
 
 void customFor(string iterator, string endpoint){
     
+    loadFromMemory(iterator,"G");
+    pushCommand("INC G");
+    pushCommand("COPY D G");
+    if(is_number(endpoint)){
+        setRegister("C",stoi(endpoint));
+    }
+    else{
+        loadFromMemory(endpoint,"C");
+    }
+    pushCommand("SUB C D");
+    string jumpPosition = to_string(programCounter + 2);
+    pushCommand("JZERO C " + jumpPosition);
+    string beginPosition = to_string(jumpStack.top());
+    jumpStack.pop();
+    pushCommand("JUMP " + beginPosition);
     
     
 }
@@ -363,7 +402,12 @@ void expressWrite() {
 
     Identifier a = ideStack.top();
     ideStack.pop();
-    loadFromMemory(a.name,"B");
+    if(a.type == "NUM"){
+        setRegister("B", stoi(a.name));
+    }
+    else{
+        loadFromMemory(a.name,"B");
+    }
     pushCommand("PUT B");
 }
 
@@ -428,7 +472,7 @@ void getIdentifier(string ide){
 
 void declarationIde(string ide, int yylineno){
     if ( std::find(memoryTable.begin(), memoryTable.end(), ide) != memoryTable.end() ){
-        cout << "ERROR: line" << yylineno << " Kolejna deklaracja zmiennej: " << ide << endl;
+        cerr << "ERROR: <line" << yylineno << "> Kolejna deklaracja zmiennej: " << ide << endl;
         exit(1);
     }
     else{

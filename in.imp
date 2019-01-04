@@ -3,9 +3,10 @@ DECLARE
 IN
 n := 11;
 b := 6;
-    FOR i FROM n DOWNTO 2 DO
+    FOR i FROM 2 TO b DO
         WRITE i;
-        FOR j FROM n DOWNTO 2 DO
+        FOR j FROM b TO 9 DO
+        WRITE 10000;
         WRITE j;
         ENDFOR
     ENDFOR
