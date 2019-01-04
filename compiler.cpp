@@ -285,16 +285,16 @@ void downtoForDeclaration(string ide, int yylineno){
     
     unChangeableIden.push_back(ide);
     pushCommand("SUB G G");
-    if(startPoint.type == "NUM" && endPoint.type == "NUM"){
+    if(startPoint.type == "NUM"){
         setRegister("G",stoi(startPoint.name));    
     }
-    if(startPoint.type == "NUM" && endPoint.type == "IDE"){
+    if(startPoint.type == "NUM"){
         setRegister("G",stoi(startPoint.name));
     }
-    if(startPoint.type == "IDE" && endPoint.type == "NUM"){
+    if(startPoint.type == "IDE"){
         loadFromMemory(startPoint.name,"G");
     }
-    if(startPoint.type == "IDE" && endPoint.type == "IDE"){
+    if(startPoint.type == "IDE"){
         loadFromMemory(startPoint.name,"G");
     }
     
