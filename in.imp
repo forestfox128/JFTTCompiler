@@ -3,8 +3,9 @@ DECLARE
 IN
 n := 11;
 b := 6;
-    FOR i FROM n DOWNTO b DO
+    FOR i FROM n DOWNTO 2 DO
         WRITE i;
-        n := n + 2;
+        n := n / 7;
+        WRITE n;
     ENDFOR
 END

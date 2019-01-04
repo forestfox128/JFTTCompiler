@@ -258,11 +258,17 @@ void printCodeStd()
 // loop expression functions
 ////////////////////////////////////////////
 
-void customForDeclaration(){
+bool is_number(const std::string& s)
+{
+    return !s.empty() && std::find_if(s.begin(), 
+        s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
+}
+
+void customForDeclaration(string ide, int yylineno){
     
 }
 
-void customFor(){
+void customFor(string iterator, string endpoint){
     
     
     
@@ -280,34 +286,36 @@ void downtoForDeclaration(string ide, int yylineno){
     unChangeableIden.push_back(ide);
     pushCommand("SUB G G");
     if(startPoint.type == "NUM" && endPoint.type == "NUM"){
-        setRegister("G", (stoi(startPoint.name) - stoi(endPoint.name)));
+        setRegister("G",stoi(startPoint.name));    
     }
     if(startPoint.type == "NUM" && endPoint.type == "IDE"){
-        loadFromMemory(endPoint.name,"G");
-        setRegister("B",stoi(startPoint.name));
-        pushCommand("SUB B G");
-        pushCommand("COPY G B");
+        setRegister("G",stoi(startPoint.name));
     }
     if(startPoint.type == "IDE" && endPoint.type == "NUM"){
         loadFromMemory(startPoint.name,"G");
-        setRegister("B",stoi(endPoint.name));
-        pushCommand("SUB G B");
     }
     if(startPoint.type == "IDE" && endPoint.type == "IDE"){
-        loadFromMemory(endPoint.name,"B");
         loadFromMemory(startPoint.name,"G");
-        pushCommand("SUB G B");
     }
-    storeInMemory("G", ide);
+    
     jumpStack.push(programCounter);
+    storeInMemory("G", ide); 
 }
 
-void downtoFor(string iterator){
+
+void downtoFor(string iterator, string endpoint){
 
     pushCommand("DEC G");
-    storeInMemory("G", iterator);
+    pushCommand("COPY D G");
+    if(is_number(endpoint)){
+        setRegister("C",stoi(endpoint));
+    }
+    else{
+        loadFromMemory(endpoint,"C");
+    }
+    pushCommand("SUB D C");
     string jumpPosition = to_string(programCounter + 2);
-    pushCommand("JZERO G "+ jumpPosition);
+    pushCommand("JZERO D " + jumpPosition);
     string beginPosition = to_string(jumpStack.top());
     jumpStack.pop();
     pushCommand("JUMP " + beginPosition);

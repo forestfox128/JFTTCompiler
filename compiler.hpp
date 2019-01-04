@@ -62,10 +62,11 @@ void ideAsignExpress(string ide, int yylineno);
 ///////////////////////////////////
 // loop expressions functions
 /////////////////////////////////
-void customFor();
-void customForDeclaration();
-void downtoFor(string iterator);
+void customFor(string iterator, string endpoint);
+void customForDeclaration(string ide, int yylineno);
+void downtoFor(string iterator, string endpoint);
 void downtoForDeclaration(string ide, int yylineno);
+
 void customIf();
 void elseIf();
 void customWhile();

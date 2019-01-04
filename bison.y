@@ -52,11 +52,11 @@ command:
         expressWrite();
     }
 
-    | FOR IDE FROM value TO value DO { customForDeclaration(); } commands ENDFOR {
-        customFor();
+    | FOR IDE FROM value TO value DO { customForDeclaration($2, yylineno); } commands ENDFOR {
+        customFor($2, $6);
     }
     | FOR IDE FROM value DOWNTO value { downtoForDeclaration($2, yylineno); } DO commands ENDFOR {
-        downtoFor($2);
+        downtoFor($2, $6);
     }
     | IF condition THEN commands ENDIF {
         customIf();
