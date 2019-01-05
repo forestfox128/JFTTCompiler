@@ -4,14 +4,15 @@
 map<string, string> registerMap;
 stack<Identifier> ideStack;
 stack <int> jumpStack;
+stack <int> jumpStackForLoop;
 vector<string> codeStack;
 stack<string> regStack;
 vector <string> memoryTable;
 vector <string> unChangeableIden;
+queue <string> tempCodeQueue;
 
 int programCounter = 0;
-string currentRegister = "";
-int numberofVariables = 0;
+int tempProgramCounter = 0;
 
 ////////////////////////////////////
 // helper functions
@@ -247,11 +248,93 @@ void pushCommand(string command)
     programCounter++;
 }
 
+void pushCommandTemp(string command)
+{
+    tempCodeQueue.push(command);
+    tempProgramCounter++;
+}
+
 void printCodeStd()
 {
     long long int i;
-    for (i = 0; i < codeStack.size(); i++)
-        cout << codeStack.at(i) << endl;
+    for (i = 0; i < codeStack.size(); i++){
+        if(codeStack.at(i) == "JUMP ?"){
+            //cout<<"tutaj ten jump"<<endl;
+            cout<<"JUMP "<<jumpStackForLoop.top()<<endl;
+            jumpStackForLoop.pop();
+        }
+        else{
+            cout << codeStack.at(i) << endl;
+        }
+    }
+        
+}
+
+////////////////////////////////////////////
+// conditions functions
+////////////////////////////////////////////
+void setRegistersFromConditions(Identifier a, Identifier b, int yylineno){
+
+    if ((a.type == "IDE" && b.type == "IDE")){
+        loadFromMemory(a.name,"C");
+        loadFromMemory(b.name,"D");
+    }
+    if(a.type == "NUM" && b.type == "NUM"){
+        setRegister("C", stoi(a.name));
+        setRegister("D", stoi(b.name));
+    }
+    if(a.type == "NUM" && b.type == "IDE"){
+        setRegister("C", stoi(a.name));
+        loadFromMemory(b.name,"D");
+    }
+    if(a.type == "IDE" && b.type == "NUM"){
+        loadFromMemory(a.name, "C");
+        setRegister("D", stoi(b.name));
+    }
+}
+
+void equalCondition(string ide1, string ide2, int yylineno){
+
+    Identifier a = ideStack.top();
+    ideStack.pop();
+    Identifier b = ideStack.top();
+    ideStack.pop();
+
+    setRegistersFromConditions(a, b, yylineno);
+
+    pushCommand("COPY E D");
+    pushCommand("SUB D C");
+    string jumpPosition1 = to_string(programCounter + 2);
+    pushCommand("JZERO D " + jumpPosition1);
+    string jumpToJump = to_string(programCounter + 3);
+    pushCommand("JUMP " + jumpToJump);
+    pushCommand("SUB C E");
+    string jumpPosition2 = to_string(programCounter + 2);
+    pushCommand("JZERO C " + jumpPosition2);
+    pushCommand("JUMP ?");
+
+}
+
+void notEqualCondition(string ide1, string ide2, int yylineno){
+
+    Identifier a = ideStack.top();
+    ideStack.pop();
+    Identifier b = ideStack.top();
+    ideStack.pop();
+
+    setRegistersFromConditions(a, b, yylineno);
+
+    pushCommand("COPY E D");
+    pushCommand("SUB D C");
+    string jumpPosition1 = to_string(programCounter + 2);
+    pushCommand("JZERO D " + jumpPosition1);
+    string jumpToIf = to_string(programCounter + 4);
+    pushCommand("JUMP " + jumpToIf);
+    pushCommand("SUB C E");
+    string jumpPosition2 = to_string(programCounter + 1);
+    pushCommand("JZERO C " + jumpPosition2);
+    pushCommand("JUMP ?");
+
 }
 
 /////////////////////////////////////////////
@@ -363,7 +446,14 @@ void downtoFor(string iterator, string endpoint){
     pushCommand("JUMP " + beginPosition);
 }
 
-void customIf(){
+void ifCondition() {
+    
+    //
+
+}
+void customIf() {
+
+    jumpStackForLoop.push(programCounter);
 
 }
 void elseIf(){

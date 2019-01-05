@@ -10,6 +10,7 @@
 #include <map>
 #include <stack>
 #include <vector>
+#include <queue>
 #include <algorithm>
 using namespace std;
 
@@ -33,6 +34,8 @@ extern vector<string> codeStack;
 extern stack <string> regStack;
 extern stack <int> jumpStack;
 extern vector <string> unChangeableIden;
+extern queue <string> tempCodeQueue;
+extern stack <int> jumpStackForLoop;
 
 /////////////////////////////////
 // bison
@@ -42,6 +45,7 @@ extern int yylineno;
 int yyerror(const string str);
 
 void pushCommand(string str);
+void pushCommandTemp(string command);
 void createIdentifier(Identifier *s, string name, string type);
 void printCodeStd();
 
@@ -68,6 +72,7 @@ void downtoFor(string iterator, string endpoint);
 void downtoForDeclaration(string ide, int yylineno);
 
 void customIf();
+void ifCondition();
 void elseIf();
 void customWhile();
 void customDoWhile();
@@ -90,3 +95,9 @@ void dividePush();
 void divide(string ide1, string ide2, int yylineo);
 void modulo(string ide1, string ide2, int yylineo);
 void moduloPush();
+
+////////////////////////////////
+// conditions functions
+///////////////////////////////
+void equalCondition(string ide1, string ide2, int yylineno);
+void notEqualCondition(string ide1, string ide2, int yylineno);
