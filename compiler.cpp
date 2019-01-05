@@ -258,7 +258,7 @@ void printCodeStd()
 {
     long long int i;
     for (i = 0; i < codeStack.size(); i++){
-        if(codeStack.at(i) == "JUMP ?"){
+        if(codeStack.at(i) == "JUMP $mark"){
             //cout<<"tutaj ten jump"<<endl;
             cout<<"JUMP "<<jumpStackForLoop.top()<<endl;
             jumpStackForLoop.pop();
@@ -311,7 +311,7 @@ void equalCondition(string ide1, string ide2, int yylineno){
     pushCommand("SUB C E");
     string jumpPosition2 = to_string(programCounter + 2);
     pushCommand("JZERO C " + jumpPosition2);
-    pushCommand("JUMP ?");
+    pushCommand("JUMP $mark");
 
 }
 
@@ -328,14 +328,109 @@ void notEqualCondition(string ide1, string ide2, int yylineno){
     pushCommand("SUB D C");
     string jumpPosition1 = to_string(programCounter + 2);
     pushCommand("JZERO D " + jumpPosition1);
-    string jumpToIf = to_string(programCounter + 4);
+    string jumpToIf = to_string(programCounter + 5);
     pushCommand("JUMP " + jumpToIf);
     pushCommand("SUB C E");
     string jumpPosition2 = to_string(programCounter + 1);
     pushCommand("JZERO C " + jumpPosition2);
-    pushCommand("JUMP ?");
+    string jumpPosition3 = to_string(programCounter + 2);
+    pushCommand("JUMP "+jumpPosition3);
+    pushCommand("JUMP $mark");
 
 }
+
+void greaterCondition(string ide1, string ide2, int yylineno){
+
+    Identifier a = ideStack.top();
+    ideStack.pop();
+    Identifier b = ideStack.top();
+    ideStack.pop();
+
+    setRegistersFromConditions(a, b, yylineno);
+
+    pushCommand("SUB D C");
+    string jzeroPosition = to_string(programCounter + 2);
+    pushCommand("JZERO D "+jzeroPosition);
+    string jumpPostion = to_string(programCounter + 2);
+    pushCommand("JUMP "+jumpPostion);
+    pushCommand("JUMP $mark");
+}
+
+void lowerCondition(string ide1, string ide2, int yylineno){
+
+    Identifier a = ideStack.top();
+    ideStack.pop();
+    Identifier b = ideStack.top();
+    ideStack.pop();
+
+    setRegistersFromConditions(a, b, yylineno);
+
+    pushCommand("SUB C D");
+    string jzeroPosition = to_string(programCounter + 2);
+    pushCommand("JZERO C "+jzeroPosition);
+    string jumpPostion = to_string(programCounter + 2);
+    pushCommand("JUMP "+jumpPostion);
+    pushCommand("JUMP $mark");
+}
+
+void greaterEqualCondition(string ide1, string ide2, int yylineno){
+
+    Identifier a = ideStack.top();
+    ideStack.pop();
+    Identifier b = ideStack.top();
+    ideStack.pop();
+
+    setRegistersFromConditions(a, b, yylineno);
+
+    pushCommand("COPY E D");
+    pushCommand("COPY F C");
+    pushCommand("SUB E F");
+    string jumpPosition0 = to_string(programCounter + 2);
+    pushCommand("JZERO E "+jumpPosition0);
+    string jumpPositionX = to_string(programCounter + 8);
+    pushCommand("JUMP "+jumpPositionX);
+    pushCommand("COPY E D");
+
+    pushCommand("SUB D C");
+    string jumpPosition1 = to_string(programCounter + 2);
+    pushCommand("JZERO D " + jumpPosition1);
+    string jumpToJump = to_string(programCounter + 3);
+    pushCommand("JUMP " + jumpToJump);
+    pushCommand("SUB C E");
+    string jumpPosition2 = to_string(programCounter + 2);
+    pushCommand("JZERO C " + jumpPosition2);
+    pushCommand("JUMP $mark");
+}
+
+void lowerEqualCondition(string ide1, string ide2, int yylineno){
+    
+    Identifier a = ideStack.top();
+    ideStack.pop();
+    Identifier b = ideStack.top();
+    ideStack.pop();
+
+    setRegistersFromConditions(a, b, yylineno);
+
+    pushCommand("COPY E D");
+    pushCommand("COPY F C");
+    pushCommand("SUB F E");
+    string jumpPosition0 = to_string(programCounter + 2);
+    pushCommand("JZERO F "+jumpPosition0);
+    string jumpPositionX = to_string(programCounter + 8);
+    pushCommand("JUMP "+jumpPositionX);
+    pushCommand("COPY E D");
+
+    pushCommand("SUB D C");
+    string jumpPosition1 = to_string(programCounter + 2);
+    pushCommand("JZERO D " + jumpPosition1);
+    string jumpToJump = to_string(programCounter + 3);
+    pushCommand("JUMP " + jumpToJump);
+    pushCommand("SUB C E");
+    string jumpPosition2 = to_string(programCounter + 2);
+    pushCommand("JZERO C " + jumpPosition2);
+    pushCommand("JUMP $mark");
+}
+
 
 /////////////////////////////////////////////
 // loop expression functions
@@ -447,9 +542,7 @@ void downtoFor(string iterator, string endpoint){
 }
 
 void ifCondition() {
-    
     //
-
 }
 void customIf() {
 

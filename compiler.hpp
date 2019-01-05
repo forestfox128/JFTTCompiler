@@ -101,3 +101,8 @@ void moduloPush();
 ///////////////////////////////
 void equalCondition(string ide1, string ide2, int yylineno);
 void notEqualCondition(string ide1, string ide2, int yylineno);
+void greaterCondition(string ide1, string ide2, int yylineno);
+void lowerCondition(string ide1, string ide2, int yylineno);
+void greaterEqualCondition(string ide1, string ide2, int yylineno);
+void lowerEqualCondition(string ide1, string ide2, int yylineno);
+

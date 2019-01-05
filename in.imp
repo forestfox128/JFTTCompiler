@@ -3,9 +3,9 @@ DECLARE
 IN
 	READ a;
     b := 4;
-	 IF 9 != 6 THEN
+	 IF a = b THEN
         WRITE 1;
-        IF a!=b THEN
+        IF a != b THEN
         WRITE 4;
         ENDIF
         a:=a/2;

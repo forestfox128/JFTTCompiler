@@ -107,10 +107,19 @@ condition:
 
         notEqualCondition($1, $3, yylineno);
     }
-    | value LT value
-    | value GT value
-    | value LE value
-    | value GE value
+    | value LT value {
+        lowerCondition($1, $3, yylineno);
+    }
+    | value GT value {
+        greaterCondition($1, $3, yylineno);
+
+    }
+    | value LE value{
+        lowerEqualCondition($1, $3, yylineno);
+    }
+    | value GE value{
+        greaterEqualCondition($1, $3, yylineno);
+    }
 
 ;
 
