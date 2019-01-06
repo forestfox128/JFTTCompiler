@@ -15,13 +15,12 @@ IN
         IF potega > 0 THEN
             WRITE dzielnik;
             WRITE potega;
-        ENDIF
-        IF potega <= 0 THEN
+        ELSE
             dzielnik := dzielnik + 1;
             m := dzielnik * dzielnik;
         ENDIF
     ENDWHILE
-    IF n != 1 THEN 
+    IF n != 1 THEN
         WRITE n;
         WRITE 1;
     ENDIF

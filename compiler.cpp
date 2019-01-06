@@ -28,13 +28,19 @@ void makeJump(){
             jumpStackForLoop.pop();
             return;
         }
-        // else(codeStack.at(i) == "JUMP $elifmark"){
-        //     //cout<<"tutaj ten jump"<<endl;
-        //     cout<<"JUMP "<<jumpStackForElIf.top()<<endl;
-        //     jumpStackForElIf.pop();
-        // }
-    }
+    }       
+}
+void makeElfJump(){
+    for(int i = codeStack.size() - 1; i >= 0; i--){
         
+        if(codeStack.at(i) == "JUMP $elifmark"){
+            //cout<<"tutaj ten jump"<<endl;
+            string newJump = "JUMP "+ to_string(jumpStackForElIf.top());
+            codeStack[i] = newJump;
+            jumpStackForElIf.pop();
+            return;
+        }
+    }       
 }
 ////////////////////////////////////
 // helper functions
@@ -553,14 +559,15 @@ void customIf() {
 
 void elseInIf(){
 
-    // pushCommand("JUMP $elifmark");
-    // jumpStackForLoop.push(programCounter);
-    // makeJump();
+    pushCommand("JUMP $elifmark");
+    jumpStackForLoop.push(programCounter);
+    makeJump();
 
 }
 void elseIf(){
     
-    // jumpStackForElIf.push(programCounter);
+    jumpStackForElIf.push(programCounter);
+    makeElfJump();
     
 }
 
