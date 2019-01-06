@@ -61,10 +61,10 @@ command:
     | IF condition THEN commands ENDIF {
         customIf();
     }
-    | IF condition THEN commands ELSE commands ENDIF {
+    | IF condition THEN commands ELSE {elseInIf();} commands ENDIF {
         elseIf();
     }
-    | WHILE condition DO commands ENDWHILE {
+    | WHILE {customWhileDeclaration(); } condition DO commands ENDWHILE {
         customWhile();
     }
     | DO commands WHILE condition ENDDO {
@@ -149,7 +149,7 @@ void parser(long long int argv, char* argc[]) {
 
     string file = "";
    
-        printCodeStd();
+    printCodeStd();
     
 }
 

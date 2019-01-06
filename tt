@@ -14,7 +14,7 @@ IN
             WRITE 1;
             n := 5;
         ENDWHILE
-        WRITE 1;
+        WRITE n;
         m := 4;
     ENDWHILE
     WRITE 0;

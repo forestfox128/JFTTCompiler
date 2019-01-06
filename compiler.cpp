@@ -5,14 +5,15 @@ map<string, string> registerMap;
 stack<Identifier> ideStack;
 stack <int> jumpStack;
 stack <int> jumpStackForLoop;
+stack <int> jumpStackForElIf;
 vector<string> codeStack;
 stack<string> regStack;
 vector <string> memoryTable;
 vector <string> unChangeableIden;
 queue <string> tempCodeQueue;
 
-int programCounter = 0;
-int tempProgramCounter = 0;
+long long int programCounter = 0;
+long long int tempProgramCounter = 0;
 
 ////////////////////////////////////
 // helper functions
@@ -237,10 +238,7 @@ void moduloPush(){
         pushCommand("JZERO F "+jumpPosition3);
         pushCommand("JUMP "+jumpPosition);
         pushCommand("SUB B B");
-
-
 }
-
 
 void pushCommand(string command)
 {
@@ -259,8 +257,12 @@ void printCodeStd()
     long long int i;
     for (i = 0; i < codeStack.size(); i++){
         if(codeStack.at(i) == "JUMP $mark"){
-            //cout<<"tutaj ten jump"<<endl;
             cout<<"JUMP "<<jumpStackForLoop.top()<<endl;
+            jumpStackForLoop.pop();
+        }
+        else if(codeStack.at(i) == "JUMP $elifmark"){
+            //cout<<"tutaj ten jump"<<endl;
+            cout<<"JUMP "<<jumpStackForElIf.top()<<endl;
             jumpStackForLoop.pop();
         }
         else{
@@ -323,7 +325,6 @@ void notEqualCondition(string ide1, string ide2, int yylineno){
     ideStack.pop();
 
     setRegistersFromConditions(a, b, yylineno);
-
     pushCommand("COPY E D");
     pushCommand("SUB D C");
     string jumpPosition1 = to_string(programCounter + 2);
@@ -383,18 +384,11 @@ void greaterEqualCondition(string ide1, string ide2, int yylineno){
     setRegistersFromConditions(a, b, yylineno);
 
     pushCommand("COPY E D");
-    pushCommand("COPY F C");
-    pushCommand("SUB E F");
-    string jumpPosition0 = to_string(programCounter + 2);
-    pushCommand("JZERO E "+jumpPosition0);
-    string jumpPositionX = to_string(programCounter + 8);
-    pushCommand("JUMP "+jumpPositionX);
-    pushCommand("COPY E D");
 
     pushCommand("SUB D C");
     string jumpPosition1 = to_string(programCounter + 2);
     pushCommand("JZERO D " + jumpPosition1);
-    string jumpToJump = to_string(programCounter + 3);
+    string jumpToJump = to_string(programCounter + 4);
     pushCommand("JUMP " + jumpToJump);
     pushCommand("SUB C E");
     string jumpPosition2 = to_string(programCounter + 2);
@@ -436,8 +430,8 @@ void lowerEqualCondition(string ide1, string ide2, int yylineno){
 // loop expression functions
 ////////////////////////////////////////////
 
-bool is_number(const std::string& s)
-{
+bool is_number(const std::string& s){
+
     return !s.empty() && std::find_if(s.begin(), 
         s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
 }
@@ -549,10 +543,29 @@ void customIf() {
     jumpStackForLoop.push(programCounter);
 
 }
+
+void elseInIf(){
+
+    pushCommand("JUMP $elifmark");
+    jumpStackForLoop.push(programCounter);
+
+}
 void elseIf(){
+    
+    jumpStackForElIf.push(programCounter);
+}
+
+void customWhileDeclaration(){
+    
+    jumpStack.push(programCounter);
 
 }
 void customWhile(){
+
+    string beginPosition = to_string(jumpStack.top());
+    jumpStack.pop();
+    pushCommand("JUMP " + beginPosition);
+    jumpStackForLoop.push(programCounter);
 
 }
 void customDoWhile(){

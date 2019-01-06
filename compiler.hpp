@@ -36,6 +36,7 @@ extern stack <int> jumpStack;
 extern vector <string> unChangeableIden;
 extern queue <string> tempCodeQueue;
 extern stack <int> jumpStackForLoop;
+extern stack <int> jumpStackForElIf;
 
 /////////////////////////////////
 // bison
@@ -74,7 +75,9 @@ void downtoForDeclaration(string ide, int yylineno);
 void customIf();
 void ifCondition();
 void elseIf();
+void elseInIf();
 void customWhile();
+void customWhileDeclaration();
 void customDoWhile();
 
 //////////////////////////////////
