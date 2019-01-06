@@ -67,7 +67,7 @@ command:
     | WHILE {customWhileDeclaration(); } condition DO commands ENDWHILE {
         customWhile();
     }
-    | DO commands WHILE condition ENDDO {
+    | DO {doWhileBegins(); }commands WHILE condition ENDDO {
         customDoWhile();
     }
 

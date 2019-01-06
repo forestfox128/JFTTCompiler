@@ -20,8 +20,6 @@ long long int tempProgramCounter = 0;
 //////////////////////////////////
 void makeJump(){
     for(int i = codeStack.size() - 1; i >= 0; i--){
-        // cerr<<i<<" "<< codeStack.at(i)<<endl;
-        // cerr<<jumpStackForLoop.top()<<endl;
         if(codeStack.at(i) == "JUMP $mark"){
             string newJump = "JUMP "+ to_string(jumpStackForLoop.top());
             codeStack[i] = newJump;
@@ -34,7 +32,6 @@ void makeElfJump(){
     for(int i = codeStack.size() - 1; i >= 0; i--){
         
         if(codeStack.at(i) == "JUMP $elifmark"){
-            //cout<<"tutaj ten jump"<<endl;
             string newJump = "JUMP "+ to_string(jumpStackForElIf.top());
             codeStack[i] = newJump;
             jumpStackForElIf.pop();
@@ -585,8 +582,24 @@ void customWhile(){
     makeJump();
 
 }
+void doWhileBegins(){
+
+    jumpStack.push(programCounter);
+    
+}
 void customDoWhile(){
 
+    for(int i = codeStack.size() - 1; i >= 0; i--){
+        if(codeStack.at(i) == "JUMP $mark"){
+            string newJump = "JUMP "+to_string(programCounter+1);
+            codeStack[i] = newJump;
+            jumpStackForLoop.pop();
+        }
+    }
+    string beginPosition = to_string(jumpStack.top());
+    jumpStack.pop();
+    cerr<<"BEG"<<beginPosition<<endl;
+    pushCommand("JUMP " + beginPosition); 
 }
 
 ///////////////////////////////////

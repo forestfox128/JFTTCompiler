@@ -79,6 +79,7 @@ void elseInIf();
 void customWhile();
 void customWhileDeclaration();
 void customDoWhile();
+void doWhileBegins();
 
 //////////////////////////////////
 // memory managment functions
