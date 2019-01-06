@@ -15,6 +15,27 @@ queue <string> tempCodeQueue;
 long long int programCounter = 0;
 long long int tempProgramCounter = 0;
 
+///////////////////////////////////
+// jump functions
+//////////////////////////////////
+void makeJump(){
+    for(int i = codeStack.size() - 1; i >= 0; i--){
+        // cerr<<i<<" "<< codeStack.at(i)<<endl;
+        // cerr<<jumpStackForLoop.top()<<endl;
+        if(codeStack.at(i) == "JUMP $mark"){
+            string newJump = "JUMP "+ to_string(jumpStackForLoop.top());
+            codeStack[i] = newJump;
+            jumpStackForLoop.pop();
+            return;
+        }
+        // else(codeStack.at(i) == "JUMP $elifmark"){
+        //     //cout<<"tutaj ten jump"<<endl;
+        //     cout<<"JUMP "<<jumpStackForElIf.top()<<endl;
+        //     jumpStackForElIf.pop();
+        // }
+    }
+        
+}
 ////////////////////////////////////
 // helper functions
 ////////////////////////////////////
@@ -246,28 +267,13 @@ void pushCommand(string command)
     programCounter++;
 }
 
-void pushCommandTemp(string command)
-{
-    tempCodeQueue.push(command);
-    tempProgramCounter++;
-}
-
 void printCodeStd()
 {
     long long int i;
     for (i = 0; i < codeStack.size(); i++){
-        if(codeStack.at(i) == "JUMP $mark"){
-            cout<<"JUMP "<<jumpStackForLoop.top()<<endl;
-            jumpStackForLoop.pop();
-        }
-        else if(codeStack.at(i) == "JUMP $elifmark"){
-            //cout<<"tutaj ten jump"<<endl;
-            cout<<"JUMP "<<jumpStackForElIf.top()<<endl;
-            jumpStackForLoop.pop();
-        }
-        else{
+        
             cout << codeStack.at(i) << endl;
-        }
+        
     }
         
 }
@@ -332,7 +338,7 @@ void notEqualCondition(string ide1, string ide2, int yylineno){
     string jumpToIf = to_string(programCounter + 5);
     pushCommand("JUMP " + jumpToIf);
     pushCommand("SUB C E");
-    string jumpPosition2 = to_string(programCounter + 1);
+    string jumpPosition2 = to_string(programCounter + 2);
     pushCommand("JZERO C " + jumpPosition2);
     string jumpPosition3 = to_string(programCounter + 2);
     pushCommand("JUMP "+jumpPosition3);
@@ -541,18 +547,21 @@ void ifCondition() {
 void customIf() {
 
     jumpStackForLoop.push(programCounter);
+    makeJump();
 
 }
 
 void elseInIf(){
 
-    pushCommand("JUMP $elifmark");
-    jumpStackForLoop.push(programCounter);
+    // pushCommand("JUMP $elifmark");
+    // jumpStackForLoop.push(programCounter);
+    // makeJump();
 
 }
 void elseIf(){
     
-    jumpStackForElIf.push(programCounter);
+    // jumpStackForElIf.push(programCounter);
+    
 }
 
 void customWhileDeclaration(){
@@ -566,6 +575,7 @@ void customWhile(){
     jumpStack.pop();
     pushCommand("JUMP " + beginPosition);
     jumpStackForLoop.push(programCounter);
+    makeJump();
 
 }
 void customDoWhile(){
