@@ -102,6 +102,7 @@ int findTableBeginning(string var);
 void add(string ide1, string ide2, int yylineo);
 void sub(string ide1, string ide2, int yylineo);
 void multp(string ide1, string ide2, int yylineo);
+void multpPush();
 void dividePush();
 void divide(string ide1, string ide2, int yylineo);
 void modulo(string ide1, string ide2, int yylineo);

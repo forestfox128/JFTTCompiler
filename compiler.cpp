@@ -78,10 +78,29 @@ void addO(Identifier a, Identifier b)
         setRegister("C",std::stoi(b.name));
         pushCommand("ADD B C");
     }
+    if(a.type == "NUM" && b.type == "ARR"){
+        setRegister("C", stoi(a.name));
+        pushCommand("LOAD B");
+        pushCommand("ADD B C");
+    }
+    if(a.type == "IDE" && b.type == "ARR"){
+        loadFromMemory(a.name, "C");
+        pushCommand("LOAD B");
+        pushCommand("ADD B C");
+    }
+    if(a.type == "ARR" && b.type == "NUM"){
+        pushCommand("LOAD B");
+        setRegister("C", stoi(b.name));
+        pushCommand("ADD B C");
+    }
+    if(a.type == "ARR" && b.type == "IDE"){
+        pushCommand("LOAD B");
+        loadFromMemory(b.name,"D");
+        pushCommand("ADD B C");
+    }
 }
 
-void subO(Identifier a, Identifier b)
-{
+void subO(Identifier a, Identifier b){
     if ((a.type == "IDE" && b.type == "NUM"))
     {
         loadFromMemory(a.name,"B");
@@ -108,23 +127,35 @@ void subO(Identifier a, Identifier b)
         setRegister("C",std::stoi(b.name));
         pushCommand("SUB B C");
     }
+    if(a.type == "NUM" && b.type == "ARR"){
+        setRegister("C", stoi(a.name));
+        pushCommand("LOAD B");
+        pushCommand("SUB C B");
+    }
+    if(a.type == "IDE" && b.type == "ARR"){
+        loadFromMemory(a.name, "C");
+        pushCommand("LOAD B");
+        pushCommand("SUB C B");
+    }
+    if(a.type == "ARR" && b.type == "NUM"){
+        pushCommand("LOAD B");
+        setRegister("C", stoi(b.name));
+        pushCommand("SUB B C");
+    }
+    if(a.type == "ARR" && b.type == "IDE"){
+        pushCommand("LOAD B");
+        loadFromMemory(b.name,"D");
+        pushCommand("SUB B C");
+    }
 }
 
-void multpO(Identifier a, Identifier b, Identifier c)
-{
+void multpO(Identifier a, Identifier b, Identifier c){
 
     if ((b.type == "IDE" && a.type == "IDE"))
     {
         loadFromMemory(a.name,"C");
         loadFromMemory(b.name,"B");
-        pushCommand("COPY D B");
-        string jzeroPosition = to_string(programCounter);
-        string jumpPosition = to_string(programCounter + 4);
-        pushCommand("JZERO C "+ jumpPosition);
-        pushCommand("ADD B D");
-        pushCommand("DEC C");
-        pushCommand("JUMP "+ jzeroPosition);
-        pushCommand("SUB B D");
+        multpPush();
     }
 
     if(a.type == "NUM" && b.type == "NUM"){
@@ -150,10 +181,30 @@ void multpO(Identifier a, Identifier b, Identifier c)
             pushCommand("ADD B C");
         }
     }
+    if(a.type == "NUM" && b.type == "ARR"){
+        setRegister("C", stoi(a.name));
+        pushCommand("LOAD B");
+        multpPush();
+    }
+
+    if(a.type == "IDE" && b.type == "ARR"){
+        pushCommand("LOAD B");
+        loadFromMemory(a.name, "C");
+        multpPush();
+    }
+    if(a.type == "ARR" && b.type == "NUM"){
+        pushCommand("LOAD B");
+        setRegister("C", stoi(b.name));
+        multpPush();
+    }
+    if(a.type == "ARR" && b.type == "IDE"){
+        pushCommand("LOAD B");
+        loadFromMemory(b.name,"C");
+        multpPush();
+    }
 }
 
-void divideO(Identifier a, Identifier b, Identifier c)
-{
+void divideO(Identifier a, Identifier b, Identifier c){
 
     if ((b.type == "IDE" && a.type == "IDE"))
     {
@@ -182,14 +233,33 @@ void divideO(Identifier a, Identifier b, Identifier c)
         setRegister("C",std::stoi(a.name));
         dividePush();
     }
+    if(a.type == "NUM" && b.type == "ARR"){
+        setRegister("C", stoi(a.name));
+        pushCommand("LOAD D");
+        dividePush();
+    }
+    
+    if(a.type == "IDE" && b.type == "ARR"){
+        pushCommand("LOAD D");
+        loadFromMemory(a.name, "C");
+        dividePush();
+    }
+    if(a.type == "ARR" && b.type == "NUM"){
+        pushCommand("LOAD C");
+        setRegister("D", stoi(b.name));
+        dividePush();
+    }
+    if(a.type == "ARR" && b.type == "IDE"){
+        pushCommand("LOAD C");
+        loadFromMemory(b.name,"D");
+        dividePush();
+    }
 
 }
 
-void moduloO(Identifier a, Identifier b)
-{
+void moduloO(Identifier a, Identifier b){
 
-    if ((b.type == "IDE" && a.type == "IDE"))
-    {
+    if ((b.type == "IDE" && a.type == "IDE")){
         loadFromMemory(a.name,"C");
         loadFromMemory(b.name,"D");
         moduloPush();
@@ -215,9 +285,40 @@ void moduloO(Identifier a, Identifier b)
         setRegister("C",std::stoi(a.name));
         moduloPush();
     }
+    if(a.type == "NUM" && b.type == "ARR"){
+        setRegister("C", stoi(a.name));
+        pushCommand("LOAD D");
+        moduloPush();
+    }
+    
+    if(a.type == "IDE" && b.type == "ARR"){
+        pushCommand("LOAD D");
+        loadFromMemory(a.name, "C");
+        moduloPush();
+    }
+    if(a.type == "ARR" && b.type == "NUM"){
+        pushCommand("LOAD C");
+        setRegister("D", stoi(b.name));
+        moduloPush();
+    }
+    if(a.type == "ARR" && b.type == "IDE"){
+        pushCommand("LOAD C");
+        loadFromMemory(b.name,"D");
+        moduloPush();
+    }
 
 }
 
+void multpPush(){
+    pushCommand("COPY D B");
+    string jzeroPosition = to_string(programCounter);
+    string jumpPosition = to_string(programCounter + 4);
+    pushCommand("JZERO C "+ jumpPosition);
+    pushCommand("ADD B D");
+    pushCommand("DEC C");
+    pushCommand("JUMP "+ jzeroPosition);
+    pushCommand("SUB B D");
+}
 void dividePush(){
         pushCommand("SUB B B");
         pushCommand("COPY E C");
@@ -524,7 +625,6 @@ void customFor(string iterator, string endpoint){
     getRidOfUselessIterator();
 }
 
-
 void downtoForDeclaration(string ide, int yylineno){
 
     Identifier endPoint = ideStack.top();
@@ -551,7 +651,6 @@ void downtoForDeclaration(string ide, int yylineno){
     jumpStack.push(programCounter);
     storeInMemory("G", ide); 
 }
-
 
 void downtoFor(string iterator, string endpoint){
 
@@ -708,9 +807,8 @@ void ideAsignExpress(string ide, int yylineno)
             exit(1);
         }
     }
-    cerr<< ide<<endl;
+    
     storeInMemory("B", ide);
-
 }
 
 void makeShiftOnTable(string lastS, string ide){
@@ -726,7 +824,6 @@ void makeShiftOnTable(string lastS, string ide){
     
     int tableBeginInd = stoi(tableBeginIndex.substr(tableNameLen,tableBeginIndex.size()));
     setRegister("D", tableBeginInd);
-    // pushCommand("PUT D");
     pushCommand("SUB C D");
     string jzeroPos = to_string(programCounter);
     string jumpPosition = to_string(programCounter + 4);
@@ -734,7 +831,6 @@ void makeShiftOnTable(string lastS, string ide){
     pushCommand("INC A");
     pushCommand("DEC C");
     pushCommand("JUMP" + jzeroPos);
-    // pushCommand("PUT A");
     
 }
 void expressWrite() {
@@ -744,20 +840,6 @@ void expressWrite() {
     if(a.type == "NUM"){
         setRegister("B", stoi(a.name));
     }
-    // else if(a.type == "ARR"){
-    //     string ide = a.name;
-    //     char last = ide.back();
-    //     if(!isdigit(last)){
-    //         string lastS ="";
-    //         lastS.push_back(last);
-    //         cerr<<"To nie jest liczba WW "<<lastS<<ide<<endl;
-    //         makeShiftOnTable(lastS, ide);
-    //         pushCommand("LOAD B");
-    //     } 
-    //     else{
-    //         loadFromMemory(a.name,"B");
-    //     } 
-    // }
     else if(a.type == "ARR"){
         //do nothing
     }
