@@ -12,7 +12,7 @@
 %token <str> NUM
 %token <str> DECLARE IN END IF THEN ELSE ENDIF
 %token <str> WHILE DO ENDWHILE FOR FROM ENDFOR ENDDO
-%token <str> WRITE READ IDE SEM TO DOWNTO
+%token <str> WRITE READ IDE SEM TO DOWNTO COL
 %token <str> LB RB ASG EQ LT GT LE GE NE ADD SUB MUL DIV MOD
 
 %type <str> value
@@ -30,7 +30,10 @@ declarations:
     declarations IDE SEM {
         declarationIde($2, yylineno);
     }
-|
+    | declarations IDE LB NUM COL NUM RB SEM {
+        declarationArray($2,$4,$6, yylineno);
+    }
+    |
 ;
 commands:
 
@@ -67,7 +70,7 @@ command:
     | WHILE {customWhileDeclaration(); } condition DO commands ENDWHILE {
         customWhile();
     }
-    | DO {doWhileBegins(); }commands WHILE condition ENDDO {
+    | DO {doWhileBegins();}commands WHILE condition ENDDO {
         customDoWhile();
     }
 
@@ -136,8 +139,12 @@ identifier:
         getIdentifier($1);
       	
     }
-    | IDE LB NUM RB
-    | IDE LB IDE RB
+    | IDE LB NUM RB {
+        getArrayWithNum($1,$3);
+    }
+    | IDE LB IDE RB {
+        getArrayWithIde($1,$3);
+    }
     ;
 
 %%

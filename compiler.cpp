@@ -302,6 +302,26 @@ void setRegistersFromConditions(Identifier a, Identifier b, int yylineno){
         loadFromMemory(a.name, "C");
         setRegister("D", stoi(b.name));
     }
+    if(a.type == "NUM" && b.type == "ARR"){
+        setRegister("C", stoi(a.name));
+        pushCommand("LOAD B");
+        pushCommand("COPY D B");
+    }
+    if(a.type == "IDE" && b.type == "ARR"){
+        loadFromMemory(a.name, "C");
+        pushCommand("LOAD B");
+        pushCommand("COPY D B");
+    }
+    if(a.type == "ARR" && b.type == "NUM"){
+        pushCommand("LOAD B");
+        pushCommand("COPY C B");
+        setRegister("D", stoi(b.name));
+    }
+    if(a.type == "ARR" && b.type == "IDE"){
+        pushCommand("LOAD B");
+        pushCommand("COPY C B");
+        loadFromMemory(b.name,"D");
+    }
 }
 
 void equalCondition(string ide1, string ide2, int yylineno){
@@ -444,7 +464,15 @@ bool is_number(const std::string& s){
     return !s.empty() && std::find_if(s.begin(), 
         s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
 }
-
+void getRidOfUselessIterator(){
+    string iteratorToDel = unChangeableIden.back();
+    for(int i = 0; i < memoryTable.size(); i++){
+        if(memoryTable[i] == iteratorToDel){
+            memoryTable[i] = "none";
+        }
+    }
+    unChangeableIden.pop_back();
+}
 void customForDeclaration(string ide, int yylineno){
 
     Identifier endPoint = ideStack.top();
@@ -493,7 +521,7 @@ void customFor(string iterator, string endpoint){
     jumpStack.pop();
     pushCommand("JUMP " + beginPosition);
     
-    
+    getRidOfUselessIterator();
 }
 
 
@@ -542,6 +570,8 @@ void downtoFor(string iterator, string endpoint){
     string beginPosition = to_string(jumpStack.top());
     jumpStack.pop();
     pushCommand("JUMP " + beginPosition);
+    
+    getRidOfUselessIterator();
 }
 
 void ifCondition() {
@@ -617,14 +647,95 @@ void expressRead()
 
 void ideAsignExpress(string ide, int yylineno)
 {
+    Identifier ideX [3];
+    int i = 0;
+    string ident = ide;
+    while(!ideStack.empty()){
+        ideX[i] = ideStack.top();
+        ideStack.pop();
+        i++;
+    }
+    if(i == 1){
+        // tab(n) := x+x / tab(3) := x+x
+        if(ideX[0].type == "ARR"){
+            ident = ideX[0].name;
+            char last = ident.back();
+            if(!isdigit(last)){
+                string lastS ="";
+                lastS.push_back(last);
+                makeShiftOnTable(lastS, ident);
+                pushCommand("STORE B");
+                return;
+            }
+            ide = ident;  
+        }
+    }
+    else if(i == 2){
+        // tab(n) := x / tab(2) := x
+        if(ideX[1].type == "ARR"){
+            ident = ideX[1].name;
+            char last = ident.back();
+            if(!isdigit(last)){
+                string lastS ="";
+                lastS.push_back(last);
+                makeShiftOnTable(lastS, ident);
+                pushCommand("STORE B");
+                return;
+                
+            }
+            ide = ident;
+        }
+        if(ideX[0].type == "ARR"){
+            ident = ideX[0].name;
+            char last = ident.back();
+            // x := tab(n)
+            if(!isdigit(last)){
+                string lastS ="";
+                lastS.push_back(last);
+                makeShiftOnTable(lastS, ident);
+                pushCommand("LOAD B");   
+            }
+            // x := tab(3)
+            else{
+                loadFromMemory(ideX[0].name,"B");
+            }
+        }
+    }
+
     for(int i = 0; i < unChangeableIden.size(); i++){
         if(unChangeableIden[i] == ide){
             cerr<<"ERROR: <line: "<<yylineno<<"> Próba zmiany niezmiennej zmiennej."<<endl;
             exit(1);
         }
     }
+    cerr<< ide<<endl;
     storeInMemory("B", ide);
 
+}
+
+void makeShiftOnTable(string lastS, string ide){
+
+    loadFromMemory(lastS,"C");
+    int tableBegins = findTableBeginning(ide.substr(0, ide.size()-1));
+    string tableName = ide.substr(0, ide.size()-1);
+    int tableNameLen = tableName.length();
+
+    setRegister("A", tableBegins);
+
+    string tableBeginIndex = memoryTable[tableBegins];
+    
+    int tableBeginInd = stoi(tableBeginIndex.substr(tableNameLen,tableBeginIndex.size()));
+    setRegister("D", tableBeginInd);
+    // pushCommand("PUT D");
+    pushCommand("SUB C D");
+    string jzeroPos = to_string(programCounter);
+    string jumpPosition = to_string(programCounter + 4);
+    pushCommand("JZERO C "+jumpPosition);
+    pushCommand("INC A");
+    pushCommand("DEC C");
+    pushCommand("JUMP" + jzeroPos);
+    // pushCommand("PUT A");
+    
 }
 void expressWrite() {
 
@@ -632,6 +743,23 @@ void expressWrite() {
     ideStack.pop();
     if(a.type == "NUM"){
         setRegister("B", stoi(a.name));
+    }
+    // else if(a.type == "ARR"){
+    //     string ide = a.name;
+    //     char last = ide.back();
+    //     if(!isdigit(last)){
+    //         string lastS ="";
+    //         lastS.push_back(last);
+    //         cerr<<"To nie jest liczba WW "<<lastS<<ide<<endl;
+    //         makeShiftOnTable(lastS, ide);
+    //         pushCommand("LOAD B");
+    //     } 
+    //     else{
+    //         loadFromMemory(a.name,"B");
+    //     } 
+    // }
+    else if(a.type == "ARR"){
+        //do nothing
     }
     else{
         loadFromMemory(a.name,"B");
@@ -698,6 +826,26 @@ void getIdentifier(string ide){
     ideStack.push(s);
 }
 
+void getArrayWithNum(string ide, string place){
+
+    Identifier s;
+    string name = ide + place;
+    createIdentifier(&s,name, "ARR");
+    ideStack.push(s);
+}
+void getArrayWithIde(string ide, string place){
+    
+    Identifier s;
+    string name = ide + place;
+    createIdentifier(&s,name, "ARR");
+    ideStack.push(s);
+
+    char last = ide.back();
+    string lastS = place;
+    makeShiftOnTable(lastS, name);
+    pushCommand("LOAD B");
+}
+
 void declarationIde(string ide, int yylineno){
     if ( std::find(memoryTable.begin(), memoryTable.end(), ide) != memoryTable.end() ){
         cerr << "ERROR: <line" << yylineno << "> Kolejna deklaracja zmiennej: " << ide << endl;
@@ -707,6 +855,26 @@ void declarationIde(string ide, int yylineno){
         Identifier s;
         createIdentifier(&s, ide, "IDE");
         memoryTable.push_back(ide);   
+    }
+}
+
+void declarationArray(string ide, string num1, string num2, int yylineno){
+    if ( std::find(memoryTable.begin(), memoryTable.end(), ide) != memoryTable.end() ){
+        cerr << "ERROR: <line" << yylineno << "> Kolejna deklaracja zmiennej: " << ide << endl;
+        exit(1);
+    }
+    else if((stoi(num2) - stoi(num1)) <= 0) {
+        cerr << "ERROR: <line" << yylineno << "> Zły zakres deklaracji tablicy: " << ide << endl;
+        exit(1);
+    }
+    else{
+        Identifier s;
+        createIdentifier(&s, ide, "IDE");
+        memoryTable.push_back(ide);
+        for(int i = stoi(num1); i <= stoi(num2); i++){
+            string myIde = ide+to_string(i);
+            memoryTable.push_back(myIde);
+        }       
     }
 }
 
@@ -737,8 +905,8 @@ void loadFromMemory(string variable, string reg){
 
     int placeInMemory = findInVector(variable);
     if(placeInMemory == -1){
-        cout<<" ERROR"<<programCounter<<" "<<variable<<endl;
-        return;
+        cerr<<" ERROR"<<programCounter<<" Próba użycia niezadeklarowanej zmiennej "<<variable<<endl;
+        exit(1);
     }
     setRegister("A", placeInMemory);
     pushCommand("LOAD "+reg);
@@ -747,8 +915,19 @@ void loadFromMemory(string variable, string reg){
 int findInVector(string var){
 
     for(int i = 0; i < memoryTable.size(); i++){
+        //cerr<<i<<" "<<memoryTable[i]<<endl;
         if(memoryTable[i] == var){
             return i;
+        }
+    }
+    return -1;
+}
+
+int findTableBeginning(string var){
+    for(int i = 0; i < memoryTable.size(); i++){
+        //cerr<<i<<" "<<memoryTable[i]<<endl;
+        if(memoryTable[i] == var){
+            return i + 1;
         }
     }
     return -1;

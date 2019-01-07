@@ -57,6 +57,7 @@
                     return IDE;    }
 
 ";"             { return SEM;      }
+":"             { return COL;      }
 [ \t\r\n]+
 .
 

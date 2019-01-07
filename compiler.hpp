@@ -12,6 +12,8 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <typeinfo>
+
 using namespace std;
 
 ////////////////////
@@ -55,14 +57,18 @@ void printCodeStd();
 //////////////////////////////////////
 void getNumber(string num);
 void getIdentifier(string ide);
+void getArrayWithNum(string ide, string place);
+void getArrayWithIde(string ide, string place);
 
 ///////////////////////////////////
 // simple expression functions
 //////////////////////////////////
 void declarationIde(string ide, int yylineno);
+void declarationArray(string ide,string num1, string num2, int yylineno);
 void expressRead();
 void expressWrite();
 void ideAsignExpress(string ide, int yylineno);
+void makeShiftOnTable(string lastS, string ide);
 
 ///////////////////////////////////
 // loop expressions functions
@@ -88,6 +94,7 @@ void setRegister(string reg, int value);
 void storeInMemory(string reg, string variable);
 void loadFromMemory(string variable, string reg);
 int findInVector(string var);
+int findTableBeginning(string var);
 
 /////////////////////////////
 // operation functions
