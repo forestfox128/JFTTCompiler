@@ -1,12 +1,20 @@
+[ numbers.imp - liczby ]
 DECLARE
-tab(1:10); n; m; z;
+	a; b; c; t(0:6); d; e; f; g; h; i; j; tab(0:5);
 IN
-n := 4;
-m := 8;
-tab(4) := 8 + m;
-tab(m) := 2 + 10;
-z := 17 % tab(n);
-WRITE tab(n);
-WRITE tab(m);
-WRITE z;
+	
+	t(0) := 7777;
+	f := 2048;
+	a := 123;
+	t(3) := t(0);
+	tab(0) := a;
+	tab(5) := tab(0) / tab(4);
+	t(5) := tab(0);
+
+	
+	
+	WRITE t(3); [ 999 ]
+	
+	WRITE t(5); [ 7777 ]
+	
 END

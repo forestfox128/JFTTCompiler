@@ -15,7 +15,7 @@ debug: compiler
 	../labor4/maszyna_rejestrowa/maszyna-rejestrowa out.gl
 
 test: compiler
-	./compiler < ../tests/test77 > out.gl
+	./compiler < ../tests/test83 > out.gl 
 	../labor4/maszyna_rejestrowa/maszyna-rejestrowa out.gl
 
 clean:

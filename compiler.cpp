@@ -48,8 +48,20 @@ void createIdentifier(Identifier *s, string name, string type)
     s->type = type;
 }
 
-void addO(Identifier a, Identifier b)
-{
+void loadValueFromTable(string ide){
+    char last = ide.back();
+    if(!isdigit(last)){
+        string lastS ="";
+        lastS.push_back(last);
+        cerr<<"loadValueFromTable "<<lastS<<ide<<endl;
+        makeShiftOnTable(lastS, ide);
+        pushCommand("LOAD B");
+    }
+    else{
+        loadFromMemory(ide,"B");
+    }
+}
+void addO(Identifier a, Identifier b){
     if ((a.type == "IDE" && b.type == "NUM"))
     {
         loadFromMemory(a.name,"B");
@@ -79,23 +91,29 @@ void addO(Identifier a, Identifier b)
         pushCommand("ADD B C");
     }
     if(a.type == "NUM" && b.type == "ARR"){
+        loadValueFromTable(b.name);
         setRegister("C", stoi(a.name));
-        pushCommand("LOAD B");
         pushCommand("ADD B C");
     }
     if(a.type == "IDE" && b.type == "ARR"){
+        loadValueFromTable(b.name);
         loadFromMemory(a.name, "C");
-        pushCommand("LOAD B");
         pushCommand("ADD B C");
     }
     if(a.type == "ARR" && b.type == "NUM"){
-        pushCommand("LOAD B");
+        loadValueFromTable(a.name);
         setRegister("C", stoi(b.name));
         pushCommand("ADD B C");
     }
     if(a.type == "ARR" && b.type == "IDE"){
-        pushCommand("LOAD B");
-        loadFromMemory(b.name,"D");
+        loadValueFromTable(a.name);
+        loadFromMemory(b.name,"C");
+        pushCommand("ADD B C");
+    }
+    if(a.type == "ARR" && b.type == "ARR"){
+        loadValueFromTable(a.name);
+        pushCommand("COPY C B");
+        loadValueFromTable(b.name);
         pushCommand("ADD B C");
     }
 }
@@ -128,28 +146,36 @@ void subO(Identifier a, Identifier b){
         pushCommand("SUB B C");
     }
     if(a.type == "NUM" && b.type == "ARR"){
+        loadValueFromTable(b.name);
         setRegister("C", stoi(a.name));
-        pushCommand("LOAD B");
         pushCommand("SUB C B");
+        pushCommand("COPY B C");
     }
     if(a.type == "IDE" && b.type == "ARR"){
+        loadValueFromTable(b.name);
         loadFromMemory(a.name, "C");
-        pushCommand("LOAD B");
         pushCommand("SUB C B");
+        pushCommand("COPY B C");
     }
     if(a.type == "ARR" && b.type == "NUM"){
-        pushCommand("LOAD B");
+        loadValueFromTable(a.name);
         setRegister("C", stoi(b.name));
         pushCommand("SUB B C");
     }
     if(a.type == "ARR" && b.type == "IDE"){
-        pushCommand("LOAD B");
-        loadFromMemory(b.name,"D");
+        loadValueFromTable(a.name);
+        loadFromMemory(b.name,"C");
         pushCommand("SUB B C");
+    }
+    if(a.type == "ARR" && b.type == "ARR"){
+        loadValueFromTable(b.name);
+        pushCommand("COPY F B");
+        loadValueFromTable(a.name);
+        pushCommand("SUB B F");
     }
 }
 
-void multpO(Identifier a, Identifier b, Identifier c){
+void multpO(Identifier a, Identifier b){
 
     if ((b.type == "IDE" && a.type == "IDE"))
     {
@@ -182,29 +208,35 @@ void multpO(Identifier a, Identifier b, Identifier c){
         }
     }
     if(a.type == "NUM" && b.type == "ARR"){
+        loadValueFromTable(b.name);
         setRegister("C", stoi(a.name));
-        pushCommand("LOAD B");
         multpPush();
     }
 
     if(a.type == "IDE" && b.type == "ARR"){
-        pushCommand("LOAD B");
+        loadValueFromTable(b.name);
         loadFromMemory(a.name, "C");
         multpPush();
     }
     if(a.type == "ARR" && b.type == "NUM"){
-        pushCommand("LOAD B");
+        loadValueFromTable(a.name);
         setRegister("C", stoi(b.name));
         multpPush();
     }
     if(a.type == "ARR" && b.type == "IDE"){
-        pushCommand("LOAD B");
+        loadValueFromTable(a.name);
         loadFromMemory(b.name,"C");
+        multpPush();
+    }
+    if(a.type == "ARR" && b.type == "ARR"){
+        loadValueFromTable(b.name);
+        pushCommand("COPY C B");
+        loadValueFromTable(a.name);
         multpPush();
     }
 }
 
-void divideO(Identifier a, Identifier b, Identifier c){
+void divideO(Identifier a, Identifier b){
 
     if ((b.type == "IDE" && a.type == "IDE"))
     {
@@ -234,25 +266,38 @@ void divideO(Identifier a, Identifier b, Identifier c){
         dividePush();
     }
     if(a.type == "NUM" && b.type == "ARR"){
+        loadValueFromTable(b.name);
         setRegister("C", stoi(a.name));
-        pushCommand("LOAD D");
+        pushCommand("COPY D B");
         dividePush();
     }
     
     if(a.type == "IDE" && b.type == "ARR"){
-        pushCommand("LOAD D");
+        loadValueFromTable(b.name);
         loadFromMemory(a.name, "C");
+        pushCommand("COPY D B");
         dividePush();
     }
     if(a.type == "ARR" && b.type == "NUM"){
-        pushCommand("LOAD C");
+        loadValueFromTable(a.name);
         setRegister("D", stoi(b.name));
+        pushCommand("COPY C B");
         dividePush();
     }
     if(a.type == "ARR" && b.type == "IDE"){
-        pushCommand("LOAD C");
+        loadValueFromTable(a.name);
         loadFromMemory(b.name,"D");
+        pushCommand("COPY C B");
         dividePush();
+    }
+    if(a.type == "ARR" && b.type == "ARR"){
+        // cerr<<"Robimy dzielenie !!!"<<endl;
+        loadValueFromTable(a.name);
+        pushCommand("COPY C B");
+        loadValueFromTable(b.name);
+        pushCommand("COPY D B");
+        dividePush();
+        // pushCommand("PUT B");
     }
 
 }
@@ -286,24 +331,35 @@ void moduloO(Identifier a, Identifier b){
         moduloPush();
     }
     if(a.type == "NUM" && b.type == "ARR"){
+        loadValueFromTable(b.name);
         setRegister("C", stoi(a.name));
-        pushCommand("LOAD D");
+        pushCommand("COPY D B");
         moduloPush();
     }
     
     if(a.type == "IDE" && b.type == "ARR"){
-        pushCommand("LOAD D");
+        loadValueFromTable(b.name);
         loadFromMemory(a.name, "C");
+        pushCommand("COPY D B");
         moduloPush();
     }
     if(a.type == "ARR" && b.type == "NUM"){
-        pushCommand("LOAD C");
+        loadValueFromTable(a.name);
         setRegister("D", stoi(b.name));
+        pushCommand("COPY C B");
         moduloPush();
     }
     if(a.type == "ARR" && b.type == "IDE"){
-        pushCommand("LOAD C");
+        loadValueFromTable(a.name);
         loadFromMemory(b.name,"D");
+        pushCommand("COPY C B");
+        moduloPush();
+    }
+    if(a.type == "ARR" && b.type == "ARR"){
+        loadValueFromTable(a.name);
+        pushCommand("COPY C B");
+        loadValueFromTable(b.name);
+        pushCommand("COPY D B");
         moduloPush();
     }
 
@@ -337,7 +393,7 @@ void dividePush(){
         pushCommand("SUB E C");
         pushCommand("JZERO E "+jumpPosition2);
 }
-
+//MODULO sub B B
 void moduloPush(){
         pushCommand("SUB B B");
         pushCommand("COPY E C");
@@ -404,21 +460,40 @@ void setRegistersFromConditions(Identifier a, Identifier b, int yylineno){
         setRegister("D", stoi(b.name));
     }
     if(a.type == "NUM" && b.type == "ARR"){
-        setRegister("C", stoi(a.name));
+        
+        char last = b.name.back();
+        string lastS ="";
+        lastS.push_back(last);
+        makeShiftOnTable(lastS, b.name);
         pushCommand("LOAD B");
         pushCommand("COPY D B");
+        setRegister("C", stoi(a.name));
     }
     if(a.type == "IDE" && b.type == "ARR"){
-        loadFromMemory(a.name, "C");
+        // cerr<<"HERE@@@@@"<<endl;
+        char last = b.name.back();
+        string lastS ="";
+        lastS.push_back(last);
+        makeShiftOnTable(lastS, b.name);
         pushCommand("LOAD B");
         pushCommand("COPY D B");
+        loadFromMemory(a.name, "C");
+
     }
     if(a.type == "ARR" && b.type == "NUM"){
+        char last = a.name.back();
+        string lastS ="";
+        lastS.push_back(last);
+        makeShiftOnTable(lastS, a.name);
         pushCommand("LOAD B");
         pushCommand("COPY C B");
         setRegister("D", stoi(b.name));
     }
     if(a.type == "ARR" && b.type == "IDE"){
+        char last = a.name.back();
+        string lastS ="";
+        lastS.push_back(last);
+        makeShiftOnTable(lastS, a.name);
         pushCommand("LOAD B");
         pushCommand("COPY C B");
         loadFromMemory(b.name,"D");
@@ -743,7 +818,7 @@ void expressRead()
     storeInMemory("B", a.name);
 
 }
-
+//potrzebuję m:=n;
 void ideAsignExpress(string ide, int yylineno)
 {
     Identifier ideX [3];
@@ -751,18 +826,23 @@ void ideAsignExpress(string ide, int yylineno)
     string ident = ide;
     while(!ideStack.empty()){
         ideX[i] = ideStack.top();
+        cerr<<"------> "<< ideX[i].name<<endl;
         ideStack.pop();
         i++;
-    }
+    } cerr<<i<<endl;
     if(i == 1){
         // tab(n) := x+x / tab(3) := x+x
+        // cerr<<"tab(n) := x+x "<<ideX[0].name<<ideX[0].type<<endl;
+        cerr<<"TO powinno byc x2"<<endl;
         if(ideX[0].type == "ARR"){
             ident = ideX[0].name;
             char last = ident.back();
+            
             if(!isdigit(last)){
                 string lastS ="";
                 lastS.push_back(last);
                 makeShiftOnTable(lastS, ident);
+                // pushCommand("PUT B");
                 pushCommand("STORE B");
                 return;
             }
@@ -770,27 +850,57 @@ void ideAsignExpress(string ide, int yylineno)
         }
     }
     else if(i == 2){
+        // tab(n) := tab(j) / tab(2) := x
+        if(ideX[1].type == "ARR" && ideX[0].type == "ARR"){
+            
+            ident = ideX[0].name;
+            char last = ident.back();
+            if(!isdigit(last)){
+                string lastS ="";
+                lastS.push_back(last); 
+                makeShiftOnTable(lastS, ident);
+                pushCommand("LOAD B");
+
+                ident = ideX[1].name;
+                last = ident.back();
+                lastS ="";
+                lastS.push_back(last);
+                makeShiftOnTable(lastS, ident);
+                pushCommand("STORE B");
+                return;
+            }
+            else{
+                loadFromMemory(ideX[0].name,"B");
+                storeInMemory("B",ideX[1].name);
+            }
+        }
         // tab(n) := x / tab(2) := x
-        if(ideX[1].type == "ARR"){
+        else if(ideX[1].type == "ARR"){
             ident = ideX[1].name;
             char last = ident.back();
             if(!isdigit(last)){
                 string lastS ="";
                 lastS.push_back(last);
+
+                if(ideX[0].type == "IDE")
+                    loadFromMemory(ideX[0].name,"B");
+                if(ideX[0].type == "NUM")
+                    setRegister("B", stoi(ideX[0].name));
+                // cerr<<"MAKE sHSIft "<<lastS<<" "<<ident<<endl;
                 makeShiftOnTable(lastS, ident);
+                // pushCommand("PUT B");
                 pushCommand("STORE B");
-                return;
-                
+                return;  
             }
             ide = ident;
         }
-        if(ideX[0].type == "ARR"){
+        else if(ideX[0].type == "ARR"){
             ident = ideX[0].name;
             char last = ident.back();
             // x := tab(n)
             if(!isdigit(last)){
                 string lastS ="";
-                lastS.push_back(last);
+                lastS.push_back(last); 
                 makeShiftOnTable(lastS, ident);
                 pushCommand("LOAD B");   
             }
@@ -799,6 +909,12 @@ void ideAsignExpress(string ide, int yylineno)
                 loadFromMemory(ideX[0].name,"B");
             }
         }
+        // m := n
+        else if (ideX[1].type == "IDE" && ideX[0].type == "IDE"){
+            loadFromMemory(ideX[0].name,"B");
+        }
+        // tab(x) := tab(y)
+        
     }
 
     for(int i = 0; i < unChangeableIden.size(); i++){
@@ -812,7 +928,11 @@ void ideAsignExpress(string ide, int yylineno)
 }
 
 void makeShiftOnTable(string lastS, string ide){
-
+    // cerr<<"WIG "<<lastS<<" "<<ide<<endl;
+    if(is_number(lastS)){
+        loadFromMemory(ide,"B");
+        return;
+    }
     loadFromMemory(lastS,"C");
     int tableBegins = findTableBeginning(ide.substr(0, ide.size()-1));
     string tableName = ide.substr(0, ide.size()-1);
@@ -821,7 +941,7 @@ void makeShiftOnTable(string lastS, string ide){
     setRegister("A", tableBegins);
 
     string tableBeginIndex = memoryTable[tableBegins];
-    
+    // cerr<<"MAKE SHIFT "<<tableBeginIndex.substr(tableNameLen,tableBeginIndex.size())<<endl;
     int tableBeginInd = stoi(tableBeginIndex.substr(tableNameLen,tableBeginIndex.size()));
     setRegister("D", tableBeginInd);
     pushCommand("SUB C D");
@@ -842,6 +962,19 @@ void expressWrite() {
     }
     else if(a.type == "ARR"){
         //do nothing
+        //loadFromMemory(a.name,"B");
+        // cerr<<"A>NAME "<<a.name<<endl;
+        string ident = a.name;
+        char last = ident.back();
+        if(!isdigit(last)){
+            string lastS ="";
+            lastS.push_back(last);
+            makeShiftOnTable(lastS, ident);
+            pushCommand("LOAD B");
+        }
+        else{
+            loadFromMemory(a.name,"B");
+        }
     }
     else{
         loadFromMemory(a.name,"B");
@@ -872,9 +1005,8 @@ void multp(string ide1, string ide2, int yylineo){
     ideStack.pop();
     Identifier b = ideStack.top();
     ideStack.pop();
-    Identifier c = ideStack.top();
-    ideStack.pop();
-    multpO(b,a,c);
+    
+    multpO(b,a);
 
 }
 void divide(string ide1, string ide2, int yylineo){
@@ -882,9 +1014,7 @@ void divide(string ide1, string ide2, int yylineo){
         ideStack.pop();
         Identifier b = ideStack.top();
         ideStack.pop();
-        Identifier c = ideStack.top();
-        ideStack.pop();
-        divideO(b,a,c);
+        divideO(b,a);
 }
 void modulo(string ide1, string ide2, int yylineo){
         Identifier a = ideStack.top();
@@ -920,12 +1050,12 @@ void getArrayWithIde(string ide, string place){
     Identifier s;
     string name = ide + place;
     createIdentifier(&s,name, "ARR");
+    // cerr<<"REad arr variabkle: "<<name<<endl;
     ideStack.push(s);
-
-    char last = ide.back();
-    string lastS = place;
-    makeShiftOnTable(lastS, name);
-    pushCommand("LOAD B");
+    // char last = ide.back();
+    // string lastS = place;
+    // makeShiftOnTable(lastS, name);
+    // pushCommand("LOAD B");
 }
 
 void declarationIde(string ide, int yylineno){
