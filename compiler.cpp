@@ -53,7 +53,6 @@ void loadValueFromTable(string ide){
     if(!isdigit(last)){
         string lastS ="";
         lastS.push_back(last);
-        cerr<<"loadValueFromTable "<<lastS<<ide<<endl;
         makeShiftOnTable(lastS, ide);
         pushCommand("LOAD B");
     }
@@ -367,13 +366,18 @@ void moduloO(Identifier a, Identifier b){
 
 void multpPush(){
     pushCommand("COPY D B");
+    pushCommand("SUB B B");
     string jzeroPosition = to_string(programCounter);
-    string jumpPosition = to_string(programCounter + 4);
+    string jumpPosition = to_string(programCounter + 7);
     pushCommand("JZERO C "+ jumpPosition);
-    pushCommand("ADD B D");
-    pushCommand("DEC C");
+    string jzeroPosition1 = to_string(programCounter + 2);
+    string jzeroPosition2 = to_string(programCounter + 3);
+    pushCommand("JODD D "+ jzeroPosition1);
+    pushCommand("JUMP "+ jzeroPosition2);
+    pushCommand("ADD B C");
+    pushCommand("ADD C C");
+    pushCommand("HALF D");
     pushCommand("JUMP "+ jzeroPosition);
-    pushCommand("SUB B D");
 }
 void dividePush(){
         pushCommand("SUB B B");
@@ -441,6 +445,7 @@ void printCodeStd()
 ////////////////////////////////////////////
 // conditions functions
 ////////////////////////////////////////////
+//TODO ARR & ARR
 void setRegistersFromConditions(Identifier a, Identifier b, int yylineno){
 
     if ((a.type == "IDE" && b.type == "IDE")){
@@ -802,7 +807,6 @@ void customDoWhile(){
     }
     string beginPosition = to_string(jumpStack.top());
     jumpStack.pop();
-    cerr<<"BEG"<<beginPosition<<endl;
     pushCommand("JUMP " + beginPosition); 
 }
 
@@ -826,14 +830,13 @@ void ideAsignExpress(string ide, int yylineno)
     string ident = ide;
     while(!ideStack.empty()){
         ideX[i] = ideStack.top();
-        cerr<<"------> "<< ideX[i].name<<endl;
+        // cerr<<"------> "<< ideX[i].name<<endl;
         ideStack.pop();
         i++;
-    } cerr<<i<<endl;
+    } 
     if(i == 1){
         // tab(n) := x+x / tab(3) := x+x
         // cerr<<"tab(n) := x+x "<<ideX[0].name<<ideX[0].type<<endl;
-        cerr<<"TO powinno byc x2"<<endl;
         if(ideX[0].type == "ARR"){
             ident = ideX[0].name;
             char last = ident.back();
@@ -958,7 +961,8 @@ void expressWrite() {
     Identifier a = ideStack.top();
     ideStack.pop();
     if(a.type == "NUM"){
-        setRegister("B", stoi(a.name));
+        setRegister("B", stoll(a.name));
+        // do nothing
     }
     else if(a.type == "ARR"){
         //do nothing
@@ -1028,7 +1032,7 @@ void getNumber(string num){
     Identifier s;
     createIdentifier(&s, num, "NUM");
     ideStack.push(s);
-    setRegister("B", std::stoi(num));
+    setRegister("B", stoll(num));
 }
 
 void getIdentifier(string ide){
@@ -1093,11 +1097,47 @@ void declarationArray(string ide, string num1, string num2, int yylineno){
 //////////////////////////////////
 // memory managment functions
 /////////////////////////////////
-void setRegister(string reg, int value){
+    unsigned int russianPeasantBinary(unsigned int a, unsigned int b) {
+      unsigned int wynik = 0;
+      while (b > 0) {
+        if (b & 1)
+          wynik += a;
+        a <<= 1;
+        b >>= 1;
+      }
+      return wynik;
+    }
+
+string DecToBin(long long int number)
+{
+    if ( number == 0 ) return "0";
+    if ( number == 1 ) return "1";
+
+    if ( number % 2 == 0 )
+        return DecToBin(number / 2) + "0";
+    else
+        return DecToBin(number / 2) + "1";
+}
+
+void setRegister(string reg, long long int value){
     pushCommand("SUB "+reg+" "+reg);
-     
-    for(int i = 0; i < value; i++){
-        pushCommand("INC "+reg);
+    if(value < 8){
+        for(int i = 0; i < value; i++){
+            pushCommand("INC "+reg);
+        }
+        return;
+    }
+    // cerr<<"RBP "<<russianPeasantBinary(11,4)<<endl;
+    string regValueBin = DecToBin(value);
+    long long int end = regValueBin.size();
+    
+    for(long long int i = 0; i < end; i++){
+        if(regValueBin[i] == '1'){
+            pushCommand("INC "+ reg);
+        }
+        if(i < (end - 1)){
+            pushCommand("ADD "+reg+" "+reg);
+        }
     }
 }
 
@@ -1106,7 +1146,7 @@ void storeInMemory(string reg, string variable){
     int placeInMemory = findInVector(variable);
 
     if(placeInMemory == -1)
-        setRegister("A", memoryTable.size()-1);
+        setRegister("A", (long long)(memoryTable.size()-1));
     else
         setRegister("A",placeInMemory);
 

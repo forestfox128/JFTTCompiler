@@ -90,7 +90,7 @@ void doWhileBegins();
 //////////////////////////////////
 // memory managment functions
 /////////////////////////////////
-void setRegister(string reg, int value);
+void setRegister(string reg, long long int value);
 void storeInMemory(string reg, string variable);
 void loadFromMemory(string variable, string reg);
 int findInVector(string var);
