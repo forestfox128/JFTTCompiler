@@ -3,6 +3,7 @@
 //map<string, Identifier> identifierStack;
 map<string, string> registerMap;
 stack<Identifier> ideStack;
+stack<Identifier> endPointStack;
 stack <int> jumpStack;
 stack <int> jumpStackForLoop;
 stack <int> jumpStackForElIf;
@@ -229,8 +230,10 @@ void multpO(Identifier a, Identifier b){
     }
     if(a.type == "ARR" && b.type == "ARR"){
         loadValueFromTable(b.name);
-        pushCommand("COPY C B");
+        pushCommand("COPY E B");
         loadValueFromTable(a.name);
+        pushCommand("COPY C E");
+        
         multpPush();
     }
 }
@@ -654,6 +657,32 @@ void getRidOfUselessIterator(){
     }
     unChangeableIden.pop_back();
 }
+void forArrCommandsBegin(Identifier startPoint){
+    char last = startPoint.name.back();
+        string lastS ="";
+        lastS.push_back(last);
+        if(is_number(lastS)){
+            loadFromMemory(startPoint.name,"G");
+        }
+        else{
+            makeShiftOnTable(lastS, startPoint.name);
+            pushCommand("LOAD B");
+            pushCommand("COPY G B");
+        }
+}
+void forArrCommandsEnd(Identifier endPoint){
+            char last = endPoint.name.back();
+            string lastS ="";
+            lastS.push_back(last);
+            if(is_number(lastS)){
+                loadFromMemory(endPoint.name,"H");
+            }
+            else{
+                makeShiftOnTable(lastS, endPoint.name);
+                pushCommand("LOAD B");
+                pushCommand("COPY H B");
+            }
+}
 void customForDeclaration(string ide, int yylineno){
 
     Identifier endPoint = ideStack.top();
@@ -661,7 +690,8 @@ void customForDeclaration(string ide, int yylineno){
     Identifier startPoint = ideStack.top();
     ideStack.pop();
     declarationIde(ide, yylineno);
-    
+
+    endPointStack.push(endPoint);
     unChangeableIden.push_back(ide);
     pushCommand("SUB G G");
     if(startPoint.type == "NUM"){
@@ -676,6 +706,23 @@ void customForDeclaration(string ide, int yylineno){
     if(startPoint.type == "IDE"){
         loadFromMemory(startPoint.name,"G");
     }
+    if(startPoint.type == "ARR"){
+        // cerr<<"Starting as an Array "<<startPoint.name<<endl;
+        forArrCommandsBegin(startPoint);   
+        forArrCommandsEnd(endPoint);
+    }
+    ///
+    // if(is_number(endPoint.name)){
+    //     setRegister("H",stoi(endPoint.name));
+    // }
+    // else{
+    //     if(endPoint.type == "ARR"){
+    //         forArrCommandsEnd(endPoint);
+    //     }
+    //     else{   
+    //         loadFromMemory(endPoint.name,"H");
+    //      }
+    // }
     
     jumpStack.push(programCounter);
     storeInMemory("G", ide); 
@@ -687,13 +734,22 @@ void customFor(string iterator, string endpoint){
     loadFromMemory(iterator,"G");
     pushCommand("INC G");
     pushCommand("COPY D G");
-    if(is_number(endpoint)){
+
+    Identifier endPoint = endPointStack.top();
+    endPointStack.pop();
+    if(endPoint.type == "ARR"){
+        pushCommand("COPY C H");
+    }
+    else{
+     if(is_number(endpoint)){
         setRegister("C",stoi(endpoint));
     }
     else{
         //cout<<endpoint<<endl;
         loadFromMemory(endpoint,"C");
     }
+    }
+    // pushCommand("PUT C");
     pushCommand("INC C");
     pushCommand("SUB C D");
     string jumpPosition = to_string(programCounter + 2);
@@ -713,6 +769,7 @@ void downtoForDeclaration(string ide, int yylineno){
     ideStack.pop();
     declarationIde(ide, yylineno);
     
+    endPointStack.push(endPoint);
     unChangeableIden.push_back(ide);
     pushCommand("SUB G G");
     if(startPoint.type == "NUM"){
@@ -727,7 +784,27 @@ void downtoForDeclaration(string ide, int yylineno){
     if(startPoint.type == "IDE"){
         loadFromMemory(startPoint.name,"G");
     }
-    
+    if(startPoint.type == "ARR"){
+        // cerr<<"Starting as an Array "<<startPoint.name<<endl;
+        forArrCommandsBegin(startPoint);  
+        forArrCommandsEnd(endPoint);  
+    }
+    //
+    // cerr<<"ENDPOITN NAME"<<endPoint.name<<endl;
+    // if(is_number(endPoint.name)){
+    //     setRegister("H",stoi(endPoint.name));
+    //     pushCommand("PUT H");
+    // }
+    // else{
+    //     if(endPoint.type == "ARR"){
+    //         forArrCommandsEnd(endPoint);
+    //     }
+    //     else{
+    //         loadFromMemory(endPoint.name,"H");
+    //         pushCommand("PUT H");
+    //     }
+    // }
+
     jumpStack.push(programCounter);
     storeInMemory("G", ide); 
 }
@@ -737,13 +814,25 @@ void downtoFor(string iterator, string endpoint){
     loadFromMemory(iterator,"G");
     pushCommand("COPY D G");
     pushCommand("DEC G");
-    if(is_number(endpoint)){
+
+    Identifier endPoint = endPointStack.top();
+    endPointStack.pop();
+    if(endPoint.type == "ARR"){
+        pushCommand("COPY C H");
+    }
+    
+    else{
+        if(is_number(endpoint)){
         setRegister("C",stoi(endpoint));
     }
     else{
         loadFromMemory(endpoint,"C");
     }
+    }
+    
+    
     pushCommand("SUB D C");
+    
     string jumpPosition = to_string(programCounter + 2);
     pushCommand("JZERO D " + jumpPosition);
     string beginPosition = to_string(jumpStack.top());
@@ -953,7 +1042,7 @@ void makeShiftOnTable(string lastS, string ide){
     pushCommand("JZERO C "+jumpPosition);
     pushCommand("INC A");
     pushCommand("DEC C");
-    pushCommand("JUMP" + jzeroPos);
+    pushCommand("JUMP " + jzeroPos);
     
 }
 void expressWrite() {
