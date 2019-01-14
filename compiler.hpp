@@ -13,6 +13,8 @@
 #include <queue>
 #include <algorithm>
 #include <typeinfo>
+#include <fstream>
+#include <iostream>
 
 using namespace std;
 
@@ -52,6 +54,7 @@ void pushCommand(string str);
 void pushCommandTemp(string command);
 void createIdentifier(Identifier *s, string name, string type);
 void printCodeStd();
+void printCodeToFile(string FileOut);
 
 ///////////////////////////////////////
 // number and identifier get functions

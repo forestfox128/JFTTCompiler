@@ -1,24 +1,28 @@
-[ for.imp 
-  12 23 34
-  507 4379 0
-]
+[ Rozklad liczby na czynniki pierwsze ]
 DECLARE
-	a; b; c;
+    n; m; reszta; potega; dzielnik;
 IN
-	READ a;
-	READ b;
-	READ c;
-	FOR i FROM 9 DOWNTO 0 DO
-		FOR j FROM 0 TO i DO
-			FOR k FROM 0 TO j DO
-				a := a + k;
-				c := k * j;
-				c := c + i;
-				b := b + c;
-			ENDFOR
-		ENDFOR
-	ENDFOR
-	WRITE a;
-	WRITE b;
-	WRITE c;
+    READ n;
+    dzielnik := 2;
+    m := dzielnik * dzielnik;
+    WHILE n >= m DO
+        potega := 0;
+        reszta := n % dzielnik;
+        WHILE reszta = 0 DO
+            n := n / dzielnik;
+            potega := potega + 1;
+            reszta := n % dzielnik;
+        ENDWHILE
+        IF potega > 0 THEN [ czy znaleziono dzielnik ]
+            WRITE dzielnik;
+            WRITE potega;
+        ELSE
+            dzielnik := dzielnik + 1;
+            m := dzielnik * dzielnik;
+        ENDIF
+    ENDWHILE
+    IF n != 1 THEN [ ostatni dzielnik ]
+        WRITE n;
+        WRITE 1;
+    ENDIF
 END

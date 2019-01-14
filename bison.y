@@ -1,10 +1,16 @@
 %{
 #include "compiler.hpp"
 
+extern FILE *yyin;
+extern FILE *yyout;
+
 %}
+
+
 
 %define parse.error verbose
 %define parse.lac full
+
 %union {
     char* str;
     long long int num;
@@ -149,15 +155,31 @@ identifier:
 
 %%
 
+void printCodeToFile(string FileOut){
+
+    ofstream fileO;
+    fileO.open (FileOut);
+    long long int i;
+    for (i = 0; i < codeStack.size(); i++){
+        
+            fileO << codeStack.at(i) <<"\n";   
+    } 
+    fileO.close();
+}
 
 void parser(long long int argv, char* argc[]) {
 	
-	yyparse();
-
-    string file = "";
-   
-    printCodeStd();
-    
+    if (argv == 3) {
+        string outFile(argc[2]);
+        cout<<outFile<<endl;
+        yyin = fopen(argc[1], "r");
+        yyparse();
+        printCodeToFile(outFile);
+    }
+    else{
+        cerr<<"ERROR: Niepoprawne wywołanie programu";
+    }
+	  
 }
 
 int main(int argv, char* argc[]){
@@ -166,7 +188,6 @@ int main(int argv, char* argc[]){
 }
 
 int yyerror(string str){
-    cout << "Błąd [okolice linii " << yylineno << \
-    "]: " << str << endl;
+    cerr << "ERROR < " << yylineno << ">: " << str << endl;
     exit(1);
 }

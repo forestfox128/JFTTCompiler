@@ -18,5 +18,9 @@ test: compiler
 	./compiler < ../tests/test83 > out.gl 
 	../labor4/maszyna_rejestrowa/maszyna-rejestrowa out.gl
 
+testWS: compiler
+	./compiler in.imp out.mr
+	../labor4/maszyna_rejestrowa/maszyna-rejestrowa out.mr
+
 clean:
 	rm -f lex.yy.c bison.tab.c bison.tab.h

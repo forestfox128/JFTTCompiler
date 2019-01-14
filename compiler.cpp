@@ -383,49 +383,49 @@ void multpPush(){
     pushCommand("JUMP "+ jzeroPosition);
 }
 void dividePush(){
-        pushCommand("SUB B B");
-        pushCommand("COPY E C");
-        string jzeroPosition = to_string(programCounter);
-        pushCommand("SUB E D");
-        string jumpPosition1 = to_string(programCounter + 6);
-        pushCommand("JZERO E "+jumpPosition1);
-        string jumpPosition = to_string(programCounter + 8);
-        pushCommand("JZERO D "+jumpPosition);
-        string jumpPosition2 = to_string(programCounter);
-        pushCommand("JZERO C "+jumpPosition);
-        pushCommand("SUB C D");
-        pushCommand("INC B");
-        pushCommand("JUMP "+jzeroPosition);
-        pushCommand("COPY E D");
-        pushCommand("SUB E C");
-        pushCommand("JZERO E "+jumpPosition2);
+    string jumpPosition = to_string(programCounter + 23);
+    pushCommand("JZERO D "+ jumpPosition);
+    pushCommand("COPY E D");
+    pushCommand("COPY B E");
+    pushCommand("SUB B C");
+    jumpPosition = to_string(programCounter + 2);
+    pushCommand("JZERO B "+ jumpPosition);
+    jumpPosition = to_string(programCounter + 3);
+    pushCommand("JUMP "+ jumpPosition);
+    pushCommand("ADD E E");
+    string jzeroPosition = to_string(programCounter - 5);
+    pushCommand("JUMP "+ jzeroPosition);
+    pushCommand("SUB B B");
+    pushCommand("COPY F E");
+    pushCommand("SUB F C");
+    jumpPosition = to_string(programCounter + 4);
+    pushCommand("JZERO F "+ jumpPosition);
+    pushCommand("ADD B B");
+    pushCommand("HALF E");
+    jzeroPosition = to_string(programCounter + 5);
+    pushCommand("JUMP "+ jzeroPosition);
+    pushCommand("ADD B B");
+    pushCommand("INC B");
+    pushCommand("SUB C E");
+    pushCommand("HALF E");
+    pushCommand("COPY F D");
+    pushCommand("SUB F E");
+    jumpPosition = to_string(programCounter - 12);
+    pushCommand("JZERO F "+ jumpPosition);
+    jzeroPosition = to_string(programCounter + 3);
+    pushCommand("JUMP "+ jzeroPosition);
+    pushCommand("SUB C C");
+    pushCommand("COPY B C");
 }
 //MODULO sub B B
 void moduloPush(){
-        pushCommand("SUB B B");
-        pushCommand("COPY E C");
-        pushCommand("COPY F D");
-        pushCommand("SUB E D");
-        string jumpPosition1 = to_string(programCounter + 6);
-        pushCommand("JZERO E "+jumpPosition1);
-        string jumpPosition = to_string(programCounter + 13);
-        pushCommand("JZERO D "+jumpPosition);
-        string jzeroPosition = to_string(programCounter);
-        string jzeroPosition1 = to_string(programCounter + 1);
-        string jumpPosition2 = to_string(programCounter + 8);
-        pushCommand("JZERO C "+jumpPosition2);
-        pushCommand("COPY B C");
-        pushCommand("SUB C D");
-        pushCommand("JUMP "+jzeroPosition);
-        pushCommand("COPY E D");
-        pushCommand("SUB E C");
-        pushCommand("JZERO E "+jumpPosition);
-        pushCommand("JUMP "+jzeroPosition1);
-        pushCommand("SUB F B");
-        string jumpPosition3 = to_string(programCounter + 2);
-        pushCommand("JZERO F "+jumpPosition3);
-        pushCommand("JUMP "+jumpPosition);
-        pushCommand("SUB B B");
+        pushCommand("COPY G C");
+        pushCommand("COPY H D");
+        dividePush();
+        pushCommand("COPY C H");
+        multpPush();
+        pushCommand("SUB G B");
+        pushCommand("COPY B G");
 }
 
 void pushCommand(string command)
@@ -434,16 +434,15 @@ void pushCommand(string command)
     programCounter++;
 }
 
-void printCodeStd()
-{
+void printCodeStd(){
     long long int i;
     for (i = 0; i < codeStack.size(); i++){
         
-            cout << codeStack.at(i) << endl;
-        
-    }
-        
+            cout << codeStack.at(i) << endl;   
+    }       
 }
+
+
 
 ////////////////////////////////////////////
 // conditions functions
@@ -711,19 +710,7 @@ void customForDeclaration(string ide, int yylineno){
         forArrCommandsBegin(startPoint);   
         forArrCommandsEnd(endPoint);
     }
-    ///
-    // if(is_number(endPoint.name)){
-    //     setRegister("H",stoi(endPoint.name));
-    // }
-    // else{
-    //     if(endPoint.type == "ARR"){
-    //         forArrCommandsEnd(endPoint);
-    //     }
-    //     else{   
-    //         loadFromMemory(endPoint.name,"H");
-    //      }
-    // }
-    
+
     jumpStack.push(programCounter);
     storeInMemory("G", ide); 
     
@@ -789,22 +776,7 @@ void downtoForDeclaration(string ide, int yylineno){
         forArrCommandsBegin(startPoint);  
         forArrCommandsEnd(endPoint);  
     }
-    //
-    // cerr<<"ENDPOITN NAME"<<endPoint.name<<endl;
-    // if(is_number(endPoint.name)){
-    //     setRegister("H",stoi(endPoint.name));
-    //     pushCommand("PUT H");
-    // }
-    // else{
-    //     if(endPoint.type == "ARR"){
-    //         forArrCommandsEnd(endPoint);
-    //     }
-    //     else{
-    //         loadFromMemory(endPoint.name,"H");
-    //         pushCommand("PUT H");
-    //     }
-    // }
-
+    
     jumpStack.push(programCounter);
     storeInMemory("G", ide); 
 }
@@ -829,7 +801,6 @@ void downtoFor(string iterator, string endpoint){
         loadFromMemory(endpoint,"C");
     }
     }
-    
     
     pushCommand("SUB D C");
     
@@ -1176,7 +1147,7 @@ void declarationArray(string ide, string num1, string num2, int yylineno){
         Identifier s;
         createIdentifier(&s, ide, "IDE");
         memoryTable.push_back(ide);
-        for(int i = stoi(num1); i <= stoi(num2); i++){
+        for(int i = stoll(num1); i <= stoll(num2); i++){
             string myIde = ide+to_string(i);
             memoryTable.push_back(myIde);
         }       
@@ -1186,16 +1157,6 @@ void declarationArray(string ide, string num1, string num2, int yylineno){
 //////////////////////////////////
 // memory managment functions
 /////////////////////////////////
-    unsigned int russianPeasantBinary(unsigned int a, unsigned int b) {
-      unsigned int wynik = 0;
-      while (b > 0) {
-        if (b & 1)
-          wynik += a;
-        a <<= 1;
-        b >>= 1;
-      }
-      return wynik;
-    }
 
 string DecToBin(long long int number)
 {
@@ -1216,7 +1177,7 @@ void setRegister(string reg, long long int value){
         }
         return;
     }
-    // cerr<<"RBP "<<russianPeasantBinary(11,4)<<endl;
+    
     string regValueBin = DecToBin(value);
     long long int end = regValueBin.size();
     

@@ -15,8 +15,8 @@
 <CMT>(\n|.)
 <CMT><<EOF>>    { printf("Błąd: niezakończony komentarz.\n"); yyterminate(); }
 
-"DECLARE"           { return DECLARE;      }
-"IN"         { return IN;      }
+"DECLARE"       { return DECLARE;      }
+"IN"            { return IN;      }
 "END"           { return END;      }
 
 ":="            { return ASG;      }
