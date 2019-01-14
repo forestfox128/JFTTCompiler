@@ -15,6 +15,8 @@ queue <string> tempCodeQueue;
 
 long long int programCounter = 0;
 long long int tempProgramCounter = 0;
+LongArray longArray;
+int longArr = 0;
 
 ///////////////////////////////////
 // jump functions
@@ -43,6 +45,11 @@ void makeElfJump(){
 ////////////////////////////////////
 // helper functions
 ////////////////////////////////////
+void createLongArray(LongArray *s, long long int begin, long long int end)
+{
+    s->begin = begin;
+    s->end = end;
+}
 void createIdentifier(Identifier *s, string name, string type)
 {
     s->name = name;
@@ -56,6 +63,7 @@ void loadValueFromTable(string ide){
         lastS.push_back(last);
         makeShiftOnTable(lastS, ide);
         pushCommand("LOAD B");
+        // pushCommand("PUT B");
     }
     else{
         loadFromMemory(ide,"B");
@@ -111,10 +119,10 @@ void addO(Identifier a, Identifier b){
         pushCommand("ADD B C");
     }
     if(a.type == "ARR" && b.type == "ARR"){
-        loadValueFromTable(a.name);
-        pushCommand("COPY C B");
         loadValueFromTable(b.name);
-        pushCommand("ADD B C");
+        pushCommand("COPY E B");
+        loadValueFromTable(a.name);
+        pushCommand("ADD B E");
     }
 }
 
@@ -417,15 +425,20 @@ void dividePush(){
     pushCommand("SUB C C");
     pushCommand("COPY B C");
 }
-//MODULO sub B B
+
 void moduloPush(){
         pushCommand("COPY G C");
-        pushCommand("COPY H D");
         dividePush();
-        pushCommand("COPY C H");
+        pushCommand("COPY C D");
+        pushCommand("COPY E D");
         multpPush();
+        string jumpPos = to_string(programCounter + 4);
+        pushCommand("JZERO E "+ jumpPos);
         pushCommand("SUB G B");
         pushCommand("COPY B G");
+        string jumpPosition = to_string(programCounter + 2);
+        pushCommand("JUMP "+jumpPosition);
+        pushCommand("SUB B B");
 }
 
 void pushCommand(string command)
@@ -477,7 +490,6 @@ void setRegistersFromConditions(Identifier a, Identifier b, int yylineno){
         setRegister("C", stoi(a.name));
     }
     if(a.type == "IDE" && b.type == "ARR"){
-        // cerr<<"HERE@@@@@"<<endl;
         char last = b.name.back();
         string lastS ="";
         lastS.push_back(last);
@@ -670,6 +682,10 @@ void forArrCommandsBegin(Identifier startPoint){
         }
 }
 void forArrCommandsEnd(Identifier endPoint){
+    if(endPoint.type == "IDE"){
+        loadFromMemory(endPoint.name,"H");
+    }
+    if(endPoint.type == "ARR"){
             char last = endPoint.name.back();
             string lastS ="";
             lastS.push_back(last);
@@ -681,9 +697,9 @@ void forArrCommandsEnd(Identifier endPoint){
                 pushCommand("LOAD B");
                 pushCommand("COPY H B");
             }
+    }
 }
 void customForDeclaration(string ide, int yylineno){
-
     Identifier endPoint = ideStack.top();
     ideStack.pop();  
     Identifier startPoint = ideStack.top();
@@ -696,18 +712,19 @@ void customForDeclaration(string ide, int yylineno){
     if(startPoint.type == "NUM"){
         setRegister("G",stoi(startPoint.name));    
     }
-    if(startPoint.type == "NUM"){
-        setRegister("G",stoi(startPoint.name));
-    }
     if(startPoint.type == "IDE"){
-        loadFromMemory(startPoint.name,"G");
+        
+        loadFromMemory(startPoint.name,"G"); 
     }
-    if(startPoint.type == "IDE"){
-        loadFromMemory(startPoint.name,"G");
+    if(endPoint.type == "IDE"){
+        forArrCommandsEnd(endPoint);
     }
+    
     if(startPoint.type == "ARR"){
         // cerr<<"Starting as an Array "<<startPoint.name<<endl;
-        forArrCommandsBegin(startPoint);   
+        forArrCommandsBegin(startPoint); 
+    }
+    if(endPoint.type == "ARR"){  
         forArrCommandsEnd(endPoint);
     }
 
@@ -732,8 +749,16 @@ void customFor(string iterator, string endpoint){
         setRegister("C",stoi(endpoint));
     }
     else{
+        //zhardkodowane
         //cout<<endpoint<<endl;
-        loadFromMemory(endpoint,"C");
+        if(endPointStack.empty()){
+            pushCommand("COPY C H");
+        }
+        else{
+            loadFromMemory(endpoint,"C");
+        }
+        
+        
     }
     }
     // pushCommand("PUT C");
@@ -882,6 +907,14 @@ void expressRead()
     storeInMemory("B", a.name);
 
 }
+void manageLongArray(string variable, string arrName){
+    Identifier a;
+    createIdentifier(&a,arrName,"IDE");
+    memoryTable.push_back(arrName);
+    loadFromMemory(variable,"B");
+    storeInMemory("B", arrName);
+    
+}
 //potrzebuję m:=n;
 void ideAsignExpress(string ide, int yylineno)
 {
@@ -900,7 +933,6 @@ void ideAsignExpress(string ide, int yylineno)
         if(ideX[0].type == "ARR"){
             ident = ideX[0].name;
             char last = ident.back();
-            
             if(!isdigit(last)){
                 string lastS ="";
                 lastS.push_back(last);
@@ -945,8 +977,14 @@ void ideAsignExpress(string ide, int yylineno)
                 string lastS ="";
                 lastS.push_back(last);
 
-                if(ideX[0].type == "IDE")
+                if(ideX[0].type == "IDE"){
+                    if(longArr == 1){
+                        manageLongArray(ideX[0].name, ideX[1].name);
+                        return;
+                    }
                     loadFromMemory(ideX[0].name,"B");
+                }
+                    
                 if(ideX[0].type == "NUM")
                     setRegister("B", stoi(ideX[0].name));
                 // cerr<<"MAKE sHSIft "<<lastS<<" "<<ident<<endl;
@@ -1027,7 +1065,13 @@ void expressWrite() {
     else if(a.type == "ARR"){
         //do nothing
         //loadFromMemory(a.name,"B");
-        // cerr<<"A>NAME "<<a.name<<endl;
+        if(longArr == 1){
+            loadFromMemory(a.name,"B");
+            longArr = 0;
+            pushCommand("PUT B");
+            return;
+        }
+
         string ident = a.name;
         char last = ident.back();
         if(!isdigit(last)){
@@ -1147,10 +1191,17 @@ void declarationArray(string ide, string num1, string num2, int yylineno){
         Identifier s;
         createIdentifier(&s, ide, "IDE");
         memoryTable.push_back(ide);
-        for(int i = stoll(num1); i <= stoll(num2); i++){
+        if(stoll(num2)- stoll(num1) > 40000000){
+            LongArray longArray;
+            createLongArray(&longArray,stoll(num1),stoll(num2));
+            longArr = 1;
+            return;
+        }
+        for(long long int i = stoll(num1); i <= stoll(num2); i++){
+            
             string myIde = ide+to_string(i);
             memoryTable.push_back(myIde);
-        }       
+        }      
     }
 }
 

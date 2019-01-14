@@ -171,7 +171,6 @@ void parser(long long int argv, char* argc[]) {
 	
     if (argv == 3) {
         string outFile(argc[2]);
-        cout<<outFile<<endl;
         yyin = fopen(argc[1], "r");
         yyparse();
         printCodeToFile(outFile);

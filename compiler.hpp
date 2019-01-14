@@ -27,6 +27,11 @@ typedef struct {
     string type; //NUM, IDE, ARR
 } Identifier;
 
+typedef struct {
+	long long int begin;
+    long long int end;
+} LongArray;
+
 ///////////////////////////
 // GLOBAL VARIABLES
 ///////////////////////////
