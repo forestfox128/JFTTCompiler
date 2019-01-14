@@ -65,7 +65,7 @@ void printCodeToFile(string FileOut);
 // number and identifier get functions
 //////////////////////////////////////
 void getNumber(string num);
-void getIdentifier(string ide);
+void getIdentifier(string ide, int yylineno);
 void getArrayWithNum(string ide, string place);
 void getArrayWithIde(string ide, string place);
 

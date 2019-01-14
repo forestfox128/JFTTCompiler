@@ -142,7 +142,7 @@ value:
 identifier:
 
     IDE {
-        getIdentifier($1);
+        getIdentifier($1,yylineno);
       	
     }
     | IDE LB NUM RB {

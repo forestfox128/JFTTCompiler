@@ -1139,11 +1139,15 @@ void getNumber(string num){
     setRegister("B", stoll(num));
 }
 
-void getIdentifier(string ide){
+void getIdentifier(string ide, int yylineno){
 
     Identifier s;
     createIdentifier(&s,ide, "IDE");
     ideStack.push(s);
+    if(findInVector(ide) == -1){
+        cerr << "ERROR: <line " << yylineno << "> Niezadeklarowana zmienna: " << ide << endl;
+        exit(1);
+    }
 }
 
 void getArrayWithNum(string ide, string place){
@@ -1168,7 +1172,7 @@ void getArrayWithIde(string ide, string place){
 
 void declarationIde(string ide, int yylineno){
     if ( std::find(memoryTable.begin(), memoryTable.end(), ide) != memoryTable.end() ){
-        cerr << "ERROR: <line" << yylineno << "> Kolejna deklaracja zmiennej: " << ide << endl;
+        cerr << "ERROR: <line " << yylineno << "> Kolejna deklaracja zmiennej: " << ide << endl;
         exit(1);
     }
     else{
@@ -1183,7 +1187,7 @@ void declarationArray(string ide, string num1, string num2, int yylineno){
         cerr << "ERROR: <line" << yylineno << "> Kolejna deklaracja zmiennej: " << ide << endl;
         exit(1);
     }
-    else if((stoi(num2) - stoi(num1)) <= 0) {
+    else if((stoi(num2) - stoi(num1)) < 0) {
         cerr << "ERROR: <line" << yylineno << "> Zły zakres deklaracji tablicy: " << ide << endl;
         exit(1);
     }
@@ -1258,7 +1262,7 @@ void loadFromMemory(string variable, string reg){
 
     int placeInMemory = findInVector(variable);
     if(placeInMemory == -1){
-        cerr<<" ERROR"<<programCounter<<" Próba użycia niezadeklarowanej zmiennej "<<variable<<endl;
+        cerr<<" ERROR"<<" Próba użycia niezadeklarowanej zmiennej "<<variable<<endl;
         exit(1);
     }
     setRegister("A", placeInMemory);
