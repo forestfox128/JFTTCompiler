@@ -13,7 +13,7 @@
 "["             { BEGIN(CMT);       }
 <CMT>"]"        { BEGIN(INITIAL);   }
 <CMT>(\n|.)
-<CMT><<EOF>>    { printf("Błąd: niezakończony komentarz.\n"); yyterminate(); }
+<CMT><<EOF>>    { printf("ERROR: niezakończony komentarz.\n"); yyterminate(); }
 
 "DECLARE"       { return DECLARE;      }
 "IN"            { return IN;      }

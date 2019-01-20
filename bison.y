@@ -187,6 +187,6 @@ int main(int argv, char* argc[]){
 }
 
 int yyerror(string str){
-    cerr << "ERROR < " << yylineno << ">: " << str << endl;
+    cerr << "ERROR <line " << yylineno << ">: " << str << endl;
     exit(1);
 }

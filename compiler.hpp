@@ -47,6 +47,7 @@ extern queue <string> tempCodeQueue;
 extern stack <int> jumpStackForLoop;
 extern stack <int> jumpStackForElIf;
 extern stack<Identifier> endPointStack;
+extern vector <string> unDeclaredVariables;
 
 /////////////////////////////////
 // bison

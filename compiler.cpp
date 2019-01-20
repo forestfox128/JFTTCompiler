@@ -11,6 +11,7 @@ vector<string> codeStack;
 stack<string> regStack;
 vector <string> memoryTable;
 vector <string> unChangeableIden;
+vector <string> setVariables;
 queue <string> tempCodeQueue;
 
 long long int programCounter = 0;
@@ -73,7 +74,7 @@ void addO(Identifier a, Identifier b){
     if ((a.type == "IDE" && b.type == "NUM"))
     {
         loadFromMemory(a.name,"B");
-        for (int i = 0; i < std::stoi(b.name); i++)
+        for (int i = 0; i < std::stoll(b.name); i++)
         {
             pushCommand("INC B");
         }
@@ -81,7 +82,7 @@ void addO(Identifier a, Identifier b){
     if (a.type == "NUM" && b.type == "IDE")
     {
         loadFromMemory(b.name,"B");
-        for (int i = 0; i < std::stoi(a.name); i++)
+        for (int i = 0; i < std::stoll(a.name); i++)
         {
             pushCommand("INC B");
         }
@@ -94,13 +95,13 @@ void addO(Identifier a, Identifier b){
     }
     if(a.type == "NUM" && b.type == "NUM"){
 
-        setRegister("B",std::stoi(a.name));
-        setRegister("C",std::stoi(b.name));
+        setRegister("B",std::stoll(a.name));
+        setRegister("C",std::stoll(b.name));
         pushCommand("ADD B C");
     }
     if(a.type == "NUM" && b.type == "ARR"){
         loadValueFromTable(b.name);
-        setRegister("C", stoi(a.name));
+        setRegister("C", stoll(a.name));
         pushCommand("ADD B C");
     }
     if(a.type == "IDE" && b.type == "ARR"){
@@ -110,7 +111,7 @@ void addO(Identifier a, Identifier b){
     }
     if(a.type == "ARR" && b.type == "NUM"){
         loadValueFromTable(a.name);
-        setRegister("C", stoi(b.name));
+        setRegister("C", stoll(b.name));
         pushCommand("ADD B C");
     }
     if(a.type == "ARR" && b.type == "IDE"){
@@ -130,7 +131,7 @@ void subO(Identifier a, Identifier b){
     if ((a.type == "IDE" && b.type == "NUM"))
     {
         loadFromMemory(a.name,"B");
-        for (int i = 0; i < std::stoi(b.name); i++)
+        for (int i = 0; i < std::stoll(b.name); i++)
         {
             pushCommand("DEC B");
         }
@@ -138,7 +139,7 @@ void subO(Identifier a, Identifier b){
     if (a.type == "NUM" && b.type == "IDE")
     {
         loadFromMemory(b.name,"C");
-        setRegister("B",std::stoi(a.name));
+        setRegister("B",std::stoll(a.name));
         pushCommand("SUB B C");
     }
     if (a.type == "IDE" && b.type == "IDE")
@@ -149,13 +150,13 @@ void subO(Identifier a, Identifier b){
     }
     if(a.type == "NUM" && b.type == "NUM"){
 
-        setRegister("B",std::stoi(a.name));
-        setRegister("C",std::stoi(b.name));
+        setRegister("B",std::stoll(a.name));
+        setRegister("C",std::stoll(b.name));
         pushCommand("SUB B C");
     }
     if(a.type == "NUM" && b.type == "ARR"){
         loadValueFromTable(b.name);
-        setRegister("C", stoi(a.name));
+        setRegister("C", stoll(a.name));
         pushCommand("SUB C B");
         pushCommand("COPY B C");
     }
@@ -167,7 +168,7 @@ void subO(Identifier a, Identifier b){
     }
     if(a.type == "ARR" && b.type == "NUM"){
         loadValueFromTable(a.name);
-        setRegister("C", stoi(b.name));
+        setRegister("C", stoll(b.name));
         pushCommand("SUB B C");
     }
     if(a.type == "ARR" && b.type == "IDE"){
@@ -194,7 +195,7 @@ void multpO(Identifier a, Identifier b){
 
     if(a.type == "NUM" && b.type == "NUM"){
 
-        int result = std::stoi(a.name) * std::stoi(b.name);
+        int result = std::stoll(a.name) * std::stoll(b.name);
         setRegister("B",result);
     }
 
@@ -202,7 +203,7 @@ void multpO(Identifier a, Identifier b){
 
         loadFromMemory(a.name,"B");
         pushCommand("COPY C B");
-        for(int i = 0; i < std::stoi(b.name) - 1; i++){
+        for(int i = 0; i < std::stoll(b.name) - 1; i++){
             pushCommand("ADD B C");
         }
     }
@@ -211,13 +212,13 @@ void multpO(Identifier a, Identifier b){
 
         loadFromMemory(b.name,"B");
         pushCommand("COPY C B");
-        for(int i = 0; i < std::stoi(a.name) - 1; i++){
+        for(int i = 0; i < std::stoll(a.name) - 1; i++){
             pushCommand("ADD B C");
         }
     }
     if(a.type == "NUM" && b.type == "ARR"){
         loadValueFromTable(b.name);
-        setRegister("C", stoi(a.name));
+        setRegister("C", stoll(a.name));
         multpPush();
     }
 
@@ -228,7 +229,7 @@ void multpO(Identifier a, Identifier b){
     }
     if(a.type == "ARR" && b.type == "NUM"){
         loadValueFromTable(a.name);
-        setRegister("C", stoi(b.name));
+        setRegister("C", stoll(b.name));
         multpPush();
     }
     if(a.type == "ARR" && b.type == "IDE"){
@@ -257,8 +258,8 @@ void divideO(Identifier a, Identifier b){
 
     if ((a.type == "NUM" && b.type == "NUM")){
         int result;
-        if(std::stoi(b.name) != 0)
-            result = std::stoi(a.name) / std::stoi(b.name);
+        if(std::stoll(b.name) != 0)
+            result = std::stoll(a.name) / std::stoll(b.name);
         else
             result = 0;
         setRegister("B", result);
@@ -266,18 +267,18 @@ void divideO(Identifier a, Identifier b){
 
     if ((a.type == "IDE" && b.type == "NUM")){
         loadFromMemory(a.name,"C");
-        setRegister("D",std::stoi(b.name));
+        setRegister("D",std::stoll(b.name));
         dividePush();
     }
 
     if ((b.type == "IDE" && a.type == "NUM")){
         loadFromMemory(b.name,"D");
-        setRegister("C",std::stoi(a.name));
+        setRegister("C",std::stoll(a.name));
         dividePush();
     }
     if(a.type == "NUM" && b.type == "ARR"){
         loadValueFromTable(b.name);
-        setRegister("C", stoi(a.name));
+        setRegister("C", stoll(a.name));
         pushCommand("COPY D B");
         dividePush();
     }
@@ -290,7 +291,7 @@ void divideO(Identifier a, Identifier b){
     }
     if(a.type == "ARR" && b.type == "NUM"){
         loadValueFromTable(a.name);
-        setRegister("D", stoi(b.name));
+        setRegister("D", stoll(b.name));
         pushCommand("COPY C B");
         dividePush();
     }
@@ -905,6 +906,7 @@ void expressRead()
     pushCommand("GET B");
     memoryTable.push_back(a.name);
     storeInMemory("B", a.name);
+    setVariables.push_back(a.name);
 
 }
 void manageLongArray(string variable, string arrName){
@@ -913,7 +915,7 @@ void manageLongArray(string variable, string arrName){
     memoryTable.push_back(arrName);
     loadFromMemory(variable,"B");
     storeInMemory("B", arrName);
-    
+    setVariables.push_back(a.name);
 }
 //potrzebuję m:=n;
 void ideAsignExpress(string ide, int yylineno)
@@ -930,6 +932,7 @@ void ideAsignExpress(string ide, int yylineno)
     if(i == 1){
         // tab(n) := x+x / tab(3) := x+x
         // cerr<<"tab(n) := x+x "<<ideX[0].name<<ideX[0].type<<endl;
+        setVariables.push_back(ideX[0].name);
         if(ideX[0].type == "ARR"){
             ident = ideX[0].name;
             char last = ident.back();
@@ -945,6 +948,7 @@ void ideAsignExpress(string ide, int yylineno)
         }
     }
     else if(i == 2){
+        setVariables.push_back(ideX[0].name);
         // tab(n) := tab(j) / tab(2) := x
         if(ideX[1].type == "ARR" && ideX[0].type == "ARR"){
             
@@ -1012,6 +1016,10 @@ void ideAsignExpress(string ide, int yylineno)
         }
         // m := n
         else if (ideX[1].type == "IDE" && ideX[0].type == "IDE"){
+            if(!(find(setVariables.begin(), setVariables.end(), ideX[0].name) != setVariables.end())){
+                cerr<<"ERROR: <line: "<<yylineno<<"> Próba użycia niezainicjalizowanej zmiennej." <<ideX[0].name <<endl;
+                exit(1);
+            }
             loadFromMemory(ideX[0].name,"B");
         }
         // tab(x) := tab(y)
@@ -1019,12 +1027,13 @@ void ideAsignExpress(string ide, int yylineno)
     }
 
     for(int i = 0; i < unChangeableIden.size(); i++){
+        setVariables.push_back(unChangeableIden[i]);
         if(unChangeableIden[i] == ide){
             cerr<<"ERROR: <line: "<<yylineno<<"> Próba zmiany niezmiennej zmiennej."<<endl;
             exit(1);
         }
     }
-    
+    setVariables.push_back(ide);
     storeInMemory("B", ide);
 }
 
@@ -1058,6 +1067,11 @@ void expressWrite() {
 
     Identifier a = ideStack.top();
     ideStack.pop();
+    // cerr<<"A TYPE"<<!(find(setVariables.begin(), setVariables.end(), a.name) != setVariables.end())<<endl;
+    if( !(find(setVariables.begin(), setVariables.end(), a.name) != setVariables.end()) && a.type == "IDE" ){
+        cerr<<"ERROR: <line: "<<yylineno<<"> Próba użycia niezainicjalizowanej zmiennej."<<endl;
+        exit(1);
+    }
     if(a.type == "NUM"){
         setRegister("B", stoll(a.name));
         // do nothing
@@ -1178,7 +1192,7 @@ void declarationIde(string ide, int yylineno){
     else{
         Identifier s;
         createIdentifier(&s, ide, "IDE");
-        memoryTable.push_back(ide);   
+        memoryTable.push_back(ide);
     }
 }
 
