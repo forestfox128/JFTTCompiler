@@ -15,6 +15,7 @@
 #include <typeinfo>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -43,7 +44,6 @@ extern vector<string> codeStack;
 extern stack <string> regStack;
 extern stack <int> jumpStack;
 extern vector <string> unChangeableIden;
-extern queue <string> tempCodeQueue;
 extern stack <int> jumpStackForLoop;
 extern stack <int> jumpStackForElIf;
 extern stack<Identifier> endPointStack;
