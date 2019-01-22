@@ -719,6 +719,7 @@ void forArrCommandsEnd(Identifier endPoint){
     }
 }
 void customForDeclaration(string ide, int yylineno){
+    setVariables.push_back(ide);
     Identifier endPoint = ideStack.top();
     ideStack.pop();  
     Identifier startPoint = ideStack.top();
@@ -793,7 +794,7 @@ void customFor(string iterator, string endpoint){
 }
 
 void downtoForDeclaration(string ide, int yylineno){
-
+    setVariables.push_back(ide);
     Identifier endPoint = ideStack.top();
     ideStack.pop();  
     Identifier startPoint = ideStack.top();
@@ -925,6 +926,7 @@ void expressRead()
     memoryTable.push_back(a.name);
     storeInMemory("B", a.name);
     setVariables.push_back(a.name);
+    // pushCommand("PUT B");
 
 }
 void manageLongArray(string variable, string arrName){
@@ -935,6 +937,13 @@ void manageLongArray(string variable, string arrName){
     storeInMemory("B", arrName);
     setVariables.push_back(a.name);
 }
+int findUndeclared(string var){
+         for(int i = 0; i < setVariables.size(); i++){
+             if(setVariables[i] == var)
+                return 0;
+         }
+         return -1;
+}
 //potrzebuję m:=n;
 void ideAsignExpress(string ide, int yylineno)
 {
@@ -943,7 +952,7 @@ void ideAsignExpress(string ide, int yylineno)
     string ident = ide;
     while(!ideStack.empty()){
         ideX[i] = ideStack.top();
-        cerr<<"------> "<< ideX[i].name <<" "<<ideX[i].type <<endl;
+        // cerr<<"------> "<< ideX[i].name <<" "<<ideX[i].type <<endl;
         ideStack.pop();
         i++;
     } 
@@ -964,6 +973,11 @@ void ideAsignExpress(string ide, int yylineno)
         }
     }
     else if(i == 2){
+        // cerr<<"IDE "<<ideX[0].name<<endl;
+        if(findUndeclared(ideX[0].name) == -1 && ideX[0].type == "IDE"){
+            cerr<<"ERROR: <line: "<<yylineno<<"> Próba użycia niezainicjalizowanej zmiennej: " <<ideX[0].name <<endl;
+             exit(1);
+        }
         setVariables.push_back(ideX[1].name);
         // tab(n) := tab(j) / tab(2) := x
         if(ideX[1].type == "ARR" && ideX[0].type == "ARR"){
@@ -1030,8 +1044,8 @@ void ideAsignExpress(string ide, int yylineno)
             loadFromMemory(ideX[0].name,"B");
         }
         // tab(x) := tab(y)
-        // cerr<<"INISTOAL var "<<ideX[0].name<<endl;
-        // if((find(setVariables.begin(), setVariables.end(), ideX[0].name) != setVariables.end()) && ideX[1].type == "IDE"){
+    
+        // if((find(setVariables.begin(), setVariables.end(), ideX[0].name) != setVariables.end()) ){
         //     cerr<<"ERROR: <line: "<<yylineno<<"> Próba użycia niezainicjalizowanej zmiennej: " <<ideX[0].name <<endl;
         //      exit(1);
         // }
@@ -1171,9 +1185,12 @@ void getNumber(string num){
 int checkIfArray(string ide){
     int probBeginIndex = findInVector(ide);
     string str1 = "|";
-    size_t found = memoryTable[probBeginIndex + 1].find(str1); 
-    if (found != string::npos) 
-        return -1;
+    if(memoryTable.size() > probBeginIndex + 1 && longArr == 0){
+        size_t found = memoryTable[probBeginIndex + 1].find(str1); 
+        if (found != string::npos) 
+            return -1;
+        else return 0;
+    }
     else return 0;
 
 }
