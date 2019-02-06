@@ -11,8 +11,8 @@ compiler: lexer parser
 	make clean
 
 debug: compiler
-	./compiler < in.imp > out.gl
-	../labor4/maszyna_rejestrowa/maszyna-rejestrowa out.gl
+	./compiler in.imp out.mr
+	../labor4/maszyna_rejestrowa/maszyna-rejestrowa out.mr
 
 test: compiler
 	./compiler < ../tests/test83 > out.gl 
@@ -20,7 +20,7 @@ test: compiler
 
 testWS: compiler
 	./compiler in.imp out.mr
-	../labor4/maszyna_rejestrowa/maszyna-rejestrowa out.mr
+	../labor4/maszyna_rejestrowa/maszyna-rejestrowa-cln out.mr
 
 clean:
 	rm -f lex.yy.c bison.tab.c bison.tab.h

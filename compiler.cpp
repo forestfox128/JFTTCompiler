@@ -13,6 +13,7 @@ vector <string> memoryTable;
 vector <string> unChangeableIden;
 vector <string> setVariables;
 
+int forCounter = 0;
 long long int programCounter = 0;
 long long int tempProgramCounter = 0;
 LongArray longArray;
@@ -332,9 +333,10 @@ void divideO(Identifier a, Identifier b){
     if(a.type == "ARR" && b.type == "ARR"){
         // cerr<<"Robimy dzielenie !!!"<<endl;
         loadValueFromTable(a.name);
-        pushCommand("COPY C B");
+        pushCommand("COPY F B");
         loadValueFromTable(b.name);
         pushCommand("COPY D B");
+        pushCommand("COPY C F");
         dividePush();
         // pushCommand("PUT B");
     }
@@ -351,8 +353,8 @@ void moduloO(Identifier a, Identifier b){
 
     if ((a.type == "NUM" && b.type == "NUM")){
         int result;
-        if(std::stoi(b.name) != 0)
-            result = std::stoi(a.name) % std::stoi(b.name);
+        if(std::stoll(b.name) != 0)
+            result = std::stoll(a.name) % std::stoll(b.name);
         else
             result = 0;
         setRegister("B", result);
@@ -360,18 +362,18 @@ void moduloO(Identifier a, Identifier b){
 
     if ((a.type == "IDE" && b.type == "NUM")){
         loadFromMemory(a.name,"C");
-        setRegister("D",std::stoi(b.name));
+        setRegister("D",std::stoll(b.name));
         moduloPush();
     }
 
     if ((b.type == "IDE" && a.type == "NUM")){
         loadFromMemory(b.name,"D");
-        setRegister("C",std::stoi(a.name));
+        setRegister("C",std::stoll(a.name));
         moduloPush();
     }
     if(a.type == "NUM" && b.type == "ARR"){
         loadValueFromTable(b.name);
-        setRegister("C", stoi(a.name));
+        setRegister("C", stoll(a.name));
         pushCommand("COPY D B");
         moduloPush();
     }
@@ -384,7 +386,7 @@ void moduloO(Identifier a, Identifier b){
     }
     if(a.type == "ARR" && b.type == "NUM"){
         loadValueFromTable(a.name);
-        setRegister("D", stoi(b.name));
+        setRegister("D", stoll(b.name));
         pushCommand("COPY C B");
         moduloPush();
     }
@@ -396,28 +398,31 @@ void moduloO(Identifier a, Identifier b){
     }
     if(a.type == "ARR" && b.type == "ARR"){
         loadValueFromTable(a.name);
-        pushCommand("COPY C B");
+        pushCommand("COPY F B");
         loadValueFromTable(b.name);
         pushCommand("COPY D B");
+        pushCommand("COPY C F");
         moduloPush();
     }
 
 }
 
 void multpPush(){
-    pushCommand("COPY D B");
-    pushCommand("SUB B B");
-    string jzeroPosition = to_string(programCounter);
-    string jumpPosition = to_string(programCounter + 7);
+
+    pushCommand("SUB D D");
+    string jumpPosition = to_string(programCounter + 9);
+    string jumpPosition1 = to_string(programCounter);
     pushCommand("JZERO C "+ jumpPosition);
-    string jzeroPosition1 = to_string(programCounter + 2);
-    string jzeroPosition2 = to_string(programCounter + 3);
-    pushCommand("JODD D "+ jzeroPosition1);
-    pushCommand("JUMP "+ jzeroPosition2);
-    pushCommand("ADD B C");
-    pushCommand("ADD C C");
-    pushCommand("HALF D");
-    pushCommand("JUMP "+ jzeroPosition);
+    string jumpPosition2 = to_string(programCounter + 4);
+    pushCommand("JODD C "+ jumpPosition2);
+    pushCommand("ADD B B");
+    pushCommand("HALF C");
+    pushCommand("JUMP "+ jumpPosition1);
+    pushCommand("ADD D B");
+    pushCommand("ADD B B");
+    pushCommand("HALF C");
+    pushCommand("JUMP "+ jumpPosition1);
+    pushCommand("COPY B D");
 }
 void dividePush(){
     string jumpPosition = to_string(programCounter + 23);
@@ -497,16 +502,16 @@ void setRegistersFromConditions(Identifier a, Identifier b, int yylineno){
         loadFromMemory(b.name,"D");
     }
     if(a.type == "NUM" && b.type == "NUM"){
-        setRegister("C", stoi(a.name));
-        setRegister("D", stoi(b.name));
+        setRegister("C", stoll(a.name));
+        setRegister("D", stoll(b.name));
     }
     if(a.type == "NUM" && b.type == "IDE"){
-        setRegister("C", stoi(a.name));
+        setRegister("C", stoll(a.name));
         loadFromMemory(b.name,"D");
     }
     if(a.type == "IDE" && b.type == "NUM"){
         loadFromMemory(a.name, "C");
-        setRegister("D", stoi(b.name));
+        setRegister("D", stoll(b.name));
     }
     if(a.type == "NUM" && b.type == "ARR"){
         
@@ -515,7 +520,7 @@ void setRegistersFromConditions(Identifier a, Identifier b, int yylineno){
         makeShiftOnTable(lastS, b.name);
         pushCommand("LOAD B");
         pushCommand("COPY D B");
-        setRegister("C", stoi(a.name));
+        setRegister("C", stoll(a.name));
     }
     if(a.type == "IDE" && b.type == "ARR"){
         string lastS = getIdeFromBrackets(b.name,'|');
@@ -524,6 +529,7 @@ void setRegistersFromConditions(Identifier a, Identifier b, int yylineno){
         pushCommand("LOAD B");
         pushCommand("COPY D B");
         loadFromMemory(a.name, "C");
+        
 
     }
     if(a.type == "ARR" && b.type == "NUM"){
@@ -532,11 +538,10 @@ void setRegistersFromConditions(Identifier a, Identifier b, int yylineno){
         makeShiftOnTable(lastS, a.name);
         pushCommand("LOAD B");
         pushCommand("COPY C B");
-        setRegister("D", stoi(b.name));
+        setRegister("D", stoll(b.name));
     }
     if(a.type == "ARR" && b.type == "IDE"){
-        string lastS = getIdeFromBrackets(b.name,'|');
-
+        string lastS = getIdeFromBrackets(a.name,'|');
         makeShiftOnTable(lastS, a.name);
         pushCommand("LOAD B");
         pushCommand("COPY C B");
@@ -719,6 +724,7 @@ void forArrCommandsEnd(Identifier endPoint){
     }
 }
 void customForDeclaration(string ide, int yylineno){
+    forCounter++;
     setVariables.push_back(ide);
     Identifier endPoint = ideStack.top();
     ideStack.pop();  
@@ -730,7 +736,7 @@ void customForDeclaration(string ide, int yylineno){
     unChangeableIden.push_back(ide);
     pushCommand("SUB G G");
     if(startPoint.type == "NUM"){
-        setRegister("G",stoi(startPoint.name));    
+        setRegister("G",stoll(startPoint.name));    
     }
     if(startPoint.type == "IDE"){
         
@@ -741,7 +747,6 @@ void customForDeclaration(string ide, int yylineno){
     }
     
     if(startPoint.type == "ARR"){
-        // cerr<<"Starting as an Array "<<startPoint.name<<endl;
         forArrCommandsBegin(startPoint); 
     }
     if(endPoint.type == "ARR"){  
@@ -766,22 +771,22 @@ void customFor(string iterator, string endpoint){
     }
     else{
      if(is_number(endpoint)){
-        setRegister("C",stoi(endpoint));
+        setRegister("C",stoll(endpoint));
     }
     else{
-        //zhardkodowane
-        //cout<<endpoint<<endl;
-        if(endPointStack.empty()){
+        if(endPointStack.empty() && forCounter == 1){
+            // cerr<<"END POINT STACK EMPTY"<<endl;
             pushCommand("COPY C H");
+            // loadFromMemory(endpoint,"C");
         }
         else{
+            // cerr<<"END POINT STACK NOT EMPTY"<<endl;
             loadFromMemory(endpoint,"C");
         }
-        
+        //  pushCommand("PUT C");
         
     }
     }
-    // pushCommand("PUT C");
     pushCommand("INC C");
     pushCommand("SUB C D");
     string jumpPosition = to_string(programCounter + 2);
@@ -805,10 +810,10 @@ void downtoForDeclaration(string ide, int yylineno){
     unChangeableIden.push_back(ide);
     pushCommand("SUB G G");
     if(startPoint.type == "NUM"){
-        setRegister("G",stoi(startPoint.name));    
+        setRegister("G",stoll(startPoint.name));    
     }
     if(startPoint.type == "NUM"){
-        setRegister("G",stoi(startPoint.name));
+        setRegister("G",stoll(startPoint.name));
     }
     if(startPoint.type == "IDE"){
         loadFromMemory(startPoint.name,"G");
@@ -817,7 +822,6 @@ void downtoForDeclaration(string ide, int yylineno){
         loadFromMemory(startPoint.name,"G");
     }
     if(startPoint.type == "ARR"){
-        // cerr<<"Starting as an Array "<<startPoint.name<<endl;
         forArrCommandsBegin(startPoint);  
         forArrCommandsEnd(endPoint);  
     }
@@ -840,7 +844,7 @@ void downtoFor(string iterator, string endpoint){
     
     else{
         if(is_number(endpoint)){
-        setRegister("C",stoi(endpoint));
+        setRegister("C",stoll(endpoint));
     }
     else{
         loadFromMemory(endpoint,"C");
@@ -926,7 +930,6 @@ void expressRead()
     memoryTable.push_back(a.name);
     storeInMemory("B", a.name);
     setVariables.push_back(a.name);
-    // pushCommand("PUT B");
 
 }
 void manageLongArray(string variable, string arrName){
@@ -944,7 +947,6 @@ int findUndeclared(string var){
          }
          return -1;
 }
-//potrzebuję m:=n;
 void ideAsignExpress(string ide, int yylineno)
 {
     Identifier ideX [3];
@@ -952,20 +954,16 @@ void ideAsignExpress(string ide, int yylineno)
     string ident = ide;
     while(!ideStack.empty()){
         ideX[i] = ideStack.top();
-        // cerr<<"------> "<< ideX[i].name <<" "<<ideX[i].type <<endl;
         ideStack.pop();
         i++;
     } 
     if(i == 1){
-        // tab(n) := x+x / tab(3) := x+x
-        // cerr<<"tab(n) := x+x "<<ideX[0].name<<ideX[0].type<<endl;
         setVariables.push_back(ideX[0].name);
         if(ideX[0].type == "ARR"){
             string lastS = getIdeFromBrackets(ideX[0].name,'|');
 
             if(!is_number(lastS)){
                 makeShiftOnTable(lastS, ident);
-                // pushCommand("PUT B");
                 pushCommand("STORE B");
                 return;
             }
@@ -973,7 +971,6 @@ void ideAsignExpress(string ide, int yylineno)
         }
     }
     else if(i == 2){
-        // cerr<<"IDE "<<ideX[0].name<<endl;
         if(findUndeclared(ideX[0].name) == -1 && ideX[0].type == "IDE"){
             cerr<<"ERROR: <line: "<<yylineno<<"> Próba użycia niezainicjalizowanej zmiennej: " <<ideX[0].name <<endl;
              exit(1);
@@ -1000,9 +997,9 @@ void ideAsignExpress(string ide, int yylineno)
         }
         // tab(n) := x / tab(2) := x
         else if(ideX[1].type == "ARR"){
-            // cerr<<"IM HERE"<<endl;
+
             string lastS = getIdeFromBrackets(ideX[1].name,'|');
-            // cerr<<!is_number(lastS)<< lastS<<endl;
+            
             if(!is_number(lastS)){
                 
 
@@ -1015,15 +1012,15 @@ void ideAsignExpress(string ide, int yylineno)
                 }
                     
                 if(ideX[0].type == "NUM")
-                    setRegister("B", stoi(ideX[0].name));
+                    setRegister("B", stoll(ideX[0].name));
 
-                // cerr<<"MAKE sHSIft XX"<<lastS<<" "<<ident<<endl;
+                
                 makeShiftOnTable(lastS, ident);
-                // pushCommand("PUT B");
+               
                 pushCommand("STORE B");
                 return;  
             }
-            // cerr<<"HERE"<<endl;
+            
             ide = ident + '|'+lastS;
         }
         else if(ideX[0].type == "ARR"){
@@ -1045,10 +1042,6 @@ void ideAsignExpress(string ide, int yylineno)
         }
         // tab(x) := tab(y)
     
-        // if((find(setVariables.begin(), setVariables.end(), ideX[0].name) != setVariables.end()) ){
-        //     cerr<<"ERROR: <line: "<<yylineno<<"> Próba użycia niezainicjalizowanej zmiennej: " <<ideX[0].name <<endl;
-        //      exit(1);
-        // }
     }
 
     for(int i = 0; i < unChangeableIden.size(); i++){
@@ -1059,13 +1052,10 @@ void ideAsignExpress(string ide, int yylineno)
         }
     }
     setVariables.push_back(ide);
-    // pushCommand("PUT B");
-    // cerr<<"IDE  "<<ide<<endl;
     storeInMemory("B", ide);
 }
 
 void makeShiftOnTable(string lastS, string ide){
-    // cerr<<"WIG "<<lastS<<" "<<ide<<endl;
     if(is_number(lastS)){
         loadFromMemory(ide,"B");
         return;
@@ -1078,9 +1068,6 @@ void makeShiftOnTable(string lastS, string ide){
     setRegister("A", tableBegins);
 
     string tableBeginIndex = memoryTable[tableBegins];
-    // cerr<<"MAKE SHIFT ide "<<ide<<endl;
-    // cerr<<"MAKE SHIFT "<<tableBeginIndex<<endl;
-    // cerr<<"MAKE SHIFT "<<getIdeFromBrackets(tableBeginIndex,'|')<<endl;
 
     int tableBeginInd = stoll(getIdeFromBrackets(tableBeginIndex,'|'));
     setRegister("D", tableBeginInd);
@@ -1097,7 +1084,6 @@ void expressWrite() {
 
     Identifier a = ideStack.top();
     ideStack.pop();
-    // cerr<<"A TYPE"<<!(find(setVariables.begin(), setVariables.end(), a.name) != setVariables.end())<<endl;
     if( !(find(setVariables.begin(), setVariables.end(), a.name) != setVariables.end()) && a.type == "IDE" ){
         cerr<<"ERROR: <line: "<<yylineno<<"> Próba użycia niezainicjalizowanej zmiennej."<<endl;
         exit(1);
@@ -1107,8 +1093,6 @@ void expressWrite() {
         // do nothing
     }
     else if(a.type == "ARR"){
-        //do nothing
-        //loadFromMemory(a.name,"B");
         if(longArr == 1){
             loadFromMemory(a.name,"B");
             longArr = 0;
@@ -1242,7 +1226,7 @@ void declarationArray(string ide, string num1, string num2, int yylineno){
         cerr << "ERROR: <line" << yylineno << "> Kolejna deklaracja zmiennej: " << ide << endl;
         exit(1);
     }
-    else if((stoi(num2) - stoi(num1)) < 0) {
+    else if((stoll(num2) - stoll(num1)) < 0) {
         cerr << "ERROR: <line" << yylineno << "> Zły zakres deklaracji tablicy: " << ide << endl;
         exit(1);
     }
@@ -1327,7 +1311,6 @@ void loadFromMemory(string variable, string reg){
 int findInVector(string var){
 
     for(int i = 0; i < memoryTable.size(); i++){
-        // cerr<<i<<" "<<memoryTable[i]<<endl;
         if(memoryTable[i] == var){
             return i;
         }
@@ -1337,7 +1320,6 @@ int findInVector(string var){
 
 int findTableBeginning(string var){
     for(int i = 0; i < memoryTable.size(); i++){
-        //cerr<<i<<" "<<memoryTable[i]<<endl;
         if(memoryTable[i] == var){
             return i + 1;
         }
